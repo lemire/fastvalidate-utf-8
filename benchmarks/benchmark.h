@@ -2,8 +2,8 @@
 #define _BENCHMARK_H_
 #include <stdint.h>
 #include <time.h>
+#include "linux-perf-events.h"
 #ifdef __x86_64__
-
 const char *unitname = "cycles";
 
 #define RDTSC_START(cycles)                                                    \
@@ -116,80 +116,69 @@ uint64_t global_rdtsc_overhead = (uint64_t)UINT64_MAX;
     fflush(NULL);                                                              \
   } while (0)
 
-// like BEST_TIME, but no check
-#define BEST_TIME_NOCHECK(test, pre, repeat, size, verbose)                    \
+#ifdef __linux__
+
+uint64_t global_rdtsc_overhead_linux = (uint64_t)UINT64_MAX;
+
+#define RDTSC_SET_OVERHEAD_LINUX(test, repeat)                                       \
   do {                                                                         \
-    if (global_rdtsc_overhead == UINT64_MAX) {                                 \
-      RDTSC_SET_OVERHEAD(rdtsc_overhead_func(1), repeat);                      \
+    uint64_t cycles_start, cycles_final, cycles_diff;                          \
+    uint64_t min_diff = UINT64_MAX;                                            \
+    struct LinuxEvents cycles;          \
+    LinuxEvents_init(&cycles); \
+     for (int i = 0; i < repeat; i++) {                                         \
+      __asm volatile("" ::: /* pretend to clobber */ "memory");                \
+      LinuxEvents_start(&cycles);                                                          \
+      test;                                                                    \
+      cycles_diff = LinuxEvents_end(&cycles);                                        \
+      if (cycles_diff < min_diff)                                              \
+        min_diff = cycles_diff;                                                \
+    }                                                                          \
+    global_rdtsc_overhead = min_diff;                                          \
+  } while (0)
+
+
+#define BEST_TIME_LINUX(test, expected, pre, repeat, size, verbose)                  \
+  do {                                                                         \
+    if (global_rdtsc_overhead_linux == UINT64_MAX) {                                 \
+      RDTSC_SET_OVERHEAD_LINUX(rdtsc_overhead_func(1), repeat);                      \
     }                                                                          \
     if (verbose)                                                               \
-      printf("%-20s\t: ", #test);                                              \
+      printf("%-60s \t: ", #test);                                              \
     fflush(NULL);                                                              \
     uint64_t cycles_start, cycles_final, cycles_diff;                          \
     uint64_t min_diff = (uint64_t)-1;                                          \
     uint64_t sum_diff = 0;                                                     \
+    struct LinuxEvents cycles;          \
+    LinuxEvents_init(&cycles); \
     for (int i = 0; i < repeat; i++) {                                         \
       pre;                                                                     \
       __asm volatile("" ::: /* pretend to clobber */ "memory");                \
-      RDTSC_START(cycles_start);                                               \
-      test;                                                                    \
-      RDTSC_STOP(cycles_final);                                                \
-      cycles_diff = (cycles_final - cycles_start - global_rdtsc_overhead);     \
+      LinuxEvents_start(&cycles);                                                          \
+      if (test != expected) {                                                  \
+        printf("not expected (%d , %d )", (int)test, (int)expected);           \
+        break;                                                                 \
+      }                                                                        \
+                                                                               \
+      cycles_diff = LinuxEvents_end(&cycles) - global_rdtsc_overhead_linux;                                        \
       if (cycles_diff < min_diff)                                              \
         min_diff = cycles_diff;                                                \
       sum_diff += cycles_diff;                                                 \
     }                                                                          \
+    LinuxEvents_close(&cycles);                                  \
     uint64_t S = size;                                                         \
     float cycle_per_op = (min_diff) / (double)S;                               \
     float avg_cycle_per_op = (sum_diff) / ((double)S * repeat);                \
     if (verbose)                                                               \
       printf(" %.3f %s per operation (best) ", cycle_per_op, unitname);        \
     if (verbose)                                                               \
-      printf("\n");                                                            \
+      printf("\t%.3f %s per operation (avg) ", avg_cycle_per_op, unitname);    \
+    if (verbose)                                                               \
+      printf(" (linux counter) \n");                                                            \
     if (!verbose)                                                              \
       printf(" %.3f ", cycle_per_op);                                          \
     fflush(NULL);                                                              \
   } while (0)
-
-// like BEST_TIME except that we run a function to check the result
-#define BEST_TIME_CHECK(test, check, pre, repeat, size, verbose)               \
-  do {                                                                         \
-    if (global_rdtsc_overhead == UINT64_MAX) {                                 \
-      RDTSC_SET_OVERHEAD(rdtsc_overhead_func(1), repeat);                      \
-    }                                                                          \
-    if (verbose)                                                               \
-      printf("%-60s\t: ", #test);                                              \
-    fflush(NULL);                                                              \
-    uint64_t cycles_start, cycles_final, cycles_diff;                          \
-    uint64_t min_diff = (uint64_t)-1;                                          \
-    uint64_t sum_diff = 0;                                                     \
-    for (int i = 0; i < repeat; i++) {                                         \
-      pre;                                                                     \
-      __asm volatile("" ::: /* pretend to clobber */ "memory");                \
-      RDTSC_START(cycles_start);                                               \
-      test;                                                                    \
-      RDTSC_STOP(cycles_final);                                                \
-      if (!check) {                                                            \
-        printf("error");                                                       \
-        break;                                                                 \
-      }                                                                        \
-      cycles_diff = (cycles_final - cycles_start - global_rdtsc_overhead);     \
-      if (cycles_diff < min_diff)                                              \
-        min_diff = cycles_diff;                                                \
-      sum_diff += cycles_diff;                                                 \
-    }                                                                          \
-    uint64_t S = size;                                                         \
-    float cycle_per_op = (min_diff) / (double)S;                               \
-    float avg_cycle_per_op = (sum_diff) / ((double)S * repeat);                \
-    if (verbose)                                                               \
-      printf(" %.3f cycles per operation (best) ", cycle_per_op);              \
-    if (verbose)                                                               \
-      printf("\t%.3f cycles per operation (avg) ", avg_cycle_per_op);          \
-    if (verbose)                                                               \
-      printf("\n");                                                            \
-    if (!verbose)                                                              \
-      printf(" %.3f ", cycle_per_op);                                          \
-    fflush(NULL);                                                              \
-  } while (0)
+#endif
 
 #endif

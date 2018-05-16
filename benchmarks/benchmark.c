@@ -45,14 +45,19 @@ void demo(size_t N) {
 
   BEST_TIME(validate_ascii_fast(data, N), expected, populate(data, N),
             repeat, N, true);
+#ifdef __linux__
+  BEST_TIME_LINUX(validate_utf8_fast(data, N), expected, populate(data, N), repeat, N,
+            true);
+
+  BEST_TIME_LINUX(validate_ascii_fast(data, N), expected, populate(data, N),
+            repeat, N, true);
+#endif
   printf("\n\n");
 
   free(data);
 }
 
 int main() {
-  demo(32);
-  demo(80);
-  demo(512);
+  demo(65536);
   printf("We are feeding ascii so it is always going to be ok.\n");
 }
