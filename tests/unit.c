@@ -7,7 +7,7 @@
 #include <string.h>
 
 #include "simdutf8check.h"
-
+#include "simdasciicheck.h"
 
 
 void test() {
@@ -30,6 +30,11 @@ void test() {
     size_t len = strlen(badsequences[i]);
     assert(!validate_utf8_fast(badsequences[i], len));
   }
+
+  char ascii[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 0};
+  char notascii[] = {128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 238, 255, 0};
+  assert(validate_ascii_fast(ascii, strlen(ascii)));
+  assert(!validate_ascii_fast(notascii, strlen(notascii)));
 }
 
 int main() {
