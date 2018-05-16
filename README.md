@@ -25,3 +25,6 @@ Code usage:
 
 It should be able to validate strings using fewer than 1 cycle per input byte, maybe
 as little as 0.7 cycles per byte.
+
+If you expect your strings to be plain ASCII, you can spend less than 0.1 cycles per input byte to check whether that is the case using the ``validate_ascii_fast`` function found in the ``simdasciicheck.h`` header.
+
