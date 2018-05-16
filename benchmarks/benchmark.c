@@ -7,8 +7,8 @@
 #include <string.h>
 
 #include "benchmark.h"
-#include "simdutf8check.h"
 #include "simdasciicheck.h"
+#include "simdutf8check.h"
 
 #include <x86intrin.h>
 /*
@@ -43,14 +43,14 @@ void demo(size_t N) {
   BEST_TIME(validate_utf8_fast(data, N), expected, populate(data, N), repeat, N,
             true);
 
-  BEST_TIME(validate_ascii_fast(data, N), expected, populate(data, N),
-            repeat, N, true);
+  BEST_TIME(validate_ascii_fast(data, N), expected, populate(data, N), repeat,
+            N, true);
 #ifdef __linux__
-  BEST_TIME_LINUX(validate_utf8_fast(data, N), expected, populate(data, N), repeat, N,
-            true);
+  BEST_TIME_LINUX(validate_utf8_fast(data, N), expected, populate(data, N),
+                  repeat, N, true);
 
   BEST_TIME_LINUX(validate_ascii_fast(data, N), expected, populate(data, N),
-            repeat, N, true);
+                  repeat, N, true);
 #endif
   printf("\n\n");
 
