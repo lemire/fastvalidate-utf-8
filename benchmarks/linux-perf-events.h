@@ -1,7 +1,9 @@
 // https://github.com/WojciechMula/toys/blob/master/000helpers/linux-perf-events.h
 #pragma once
 #ifdef __linux__
-
+#define _GNU_SOURCE         /* See feature_test_macros(7) */
+#include <unistd.h>
+#include <sys/syscall.h>   /* For SYS_xxx definitions */
 #include <asm/unistd.h> // for __NR_perf_event_open
 #include <linux/hw_breakpoint.h>
 #include <linux/perf_event.h> // for perf event constants
