@@ -48,7 +48,7 @@ static inline void checkLargerThan0xC2(__m128i current_bytes_unsigned,
 }
 
 // Code contributed by Kendall Willets
-static inline void checkContinuation(__m128i high_nibbles, __m128i counts,
+static inline void checkContinuation(__m128i counts,
                                      __m128i previous_counts,
                                      __m128i *has_error) {
 
@@ -60,13 +60,13 @@ static inline void checkContinuation(__m128i high_nibbles, __m128i counts,
 				 _mm_set1_epi8(2));
    sum = _mm_add_epi8(sum, right2);
 
-  // error =
-  // sum > count && count > 0 || !sum > count && !count > 0
-  // (sum > count) == (count > 0)
-  __m128i overunder = _mm_cmpeq_epi8(_mm_cmpgt_epi8(sum, counts),
-				     _mm_cmpgt_epi8(counts, _mm_set1_epi8(0)));
-				     
-  *has_error = _mm_or_si128(*has_error, overunder);
+   // overlap || underlap
+   // sum > count && count > 0 || !(sum > count) && !(count > 0)
+   // (sum > count) == (count > 0)
+   __m128i overunder = _mm_cmpeq_epi8(_mm_cmpgt_epi8(sum, counts),
+				      _mm_cmpgt_epi8(counts, _mm_setzero_si128()));
+   
+   *has_error = _mm_or_si128(*has_error, overunder);
 }
 
 static inline void checkFirstContinuationMax3(__m128i current_bytes_unsigned,
@@ -172,7 +172,7 @@ checkUTF8Bytes(__m128i current_bytes, struct processed_utf_bytes *previous,
       _mm_sub_epi8(current_bytes, _mm_set1_epi8(-128));
   checkSmallerThan0xF4(current_bytes_unsigned, has_error);
   checkLargerThan0xC2(current_bytes_unsigned, pb.high_nibbles, has_error);
-  checkContinuation(pb.high_nibbles, pb.counts, previous->counts, has_error);
+  checkContinuation(pb.counts, previous->counts, has_error);
   __m128i off1_low_nibbles =
       _mm_alignr_epi8(pb.low_nibbles, previous->low_nibbles, 16 - 1);
   __m128i off1_high_nibbles =
