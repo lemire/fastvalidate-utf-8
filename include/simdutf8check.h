@@ -87,15 +87,6 @@ static inline void checkFirstContinuationMax(__m128i current_bytes_unsigned,
   *has_error = _mm_or_si128(*has_error, _mm_or_si128(badfollowED, badfollowF4));
 }
 
-void dump( __m128i reg, char * msg ) {
-  printf("%s ", msg);
-  unsigned char c[16];
-  _mm_storeu_si128((__m128i *) c, reg);
-  for( int i = 0; i <16; i++ )
-    printf("%02hhX ", c[i] );
-  printf("\n");
-};
-
 // we have that E0 must be followed by something no smaller than A0
 // we have that F0 must be followed by something no smaller than 90
 static inline void checkFirstContinuationMin(__m128i current_bytes_unsigned,
