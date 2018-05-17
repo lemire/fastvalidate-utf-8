@@ -51,28 +51,22 @@ static inline void checkLargerThan0xC2(__m128i current_bytes_unsigned,
 static inline void checkContinuation(__m128i high_nibbles, __m128i counts,
                                      __m128i previous_counts,
                                      __m128i *has_error) {
-  __m128i right1 = _mm_alignr_epi8(counts, previous_counts,
-                                   16 - 1); //_mm_bslli_si128(counts, 1);
-  __m128i right2 =
-      _mm_subs_epu8(_mm_alignr_epi8(counts, previous_counts, 16 - 2),
-                    _mm_set1_epi8(1)); // _mm_subs_epu8(  _mm_bslli_si128(
-                                       // counts, 2), _mm_set1_epi8(1));
-  __m128i right3 = _mm_subs_epu8(
-      _mm_alignr_epi8(counts, previous_counts, 16 - 3),
-      _mm_set1_epi8(
-          2)); // _mm_subs_epu8( _mm_bslli_si128( counts, 3), _mm_set1_epi8(2));
 
-  __m128i following = _mm_or_si128(_mm_or_si128(right1, right2), right3);
+  __m128i right1 = _mm_subs_epu8(_mm_alignr_epi8(counts, previous_counts,16 - 1),
+				 _mm_set1_epi8(1));
+  __m128i sum = _mm_add_epi8(counts, right1);
 
-  __m128i continuations = _mm_cmpgt_epi8(following, _mm_set1_epi8(0));
-  __m128i firsts = _mm_shuffle_epi8(_mm_setr_epi8(0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-                                                  0xFF, 0xFF, 0xFF, // 0xxx
-                                                  0, 0, 0, 0,       // 10xx
-                                                  0xFF, 0xFF,       // 110x
-                                                  0xFF,             // 1110
-                                                  0xFF),            // 1111
-                                    high_nibbles);
-  *has_error = _mm_or_si128(*has_error, _mm_cmpeq_epi8(firsts, continuations));
+  __m128i right2 = _mm_subs_epu8(_mm_alignr_epi8(sum, previous_counts,16 - 2),
+				 _mm_set1_epi8(2));
+   sum = _mm_add_epi8(sum, right2);
+
+  // error =
+  // sum > count && count > 0 || !sum > count && !count > 0
+  // (sum > count) == (count > 0)
+  __m128i overunder = _mm_cmpeq_epi8(_mm_cmpgt_epi8(sum, counts),
+				     _mm_cmpgt_epi8(counts, _mm_set1_epi8(0)));
+				     
+  *has_error = _mm_or_si128(*has_error, overunder);
 }
 
 static inline void checkFirstContinuationMax3(__m128i current_bytes_unsigned,
@@ -158,11 +152,11 @@ static inline void count_nibbles(__m128i bytes,
 
   answer->high_nibbles = _mm_and_si128(_mm_srli_epi16(bytes, 4), nibble_mask);
   answer->counts = _mm_shuffle_epi8(
-      _mm_setr_epi8(0, 0, 0, 0, 0, 0, 0, 0, // 0xxx (ASCII)
+      _mm_setr_epi8(1, 1, 1, 1, 1, 1, 1, 1, // 0xxx (ASCII)
                     0, 0, 0, 0,             // 10xx (continuation)
-                    1, 1,                   // 110x
-                    2,                      // 1110
-                    3), // 1111, next should be 0 (not checked here)
+                    2, 2,                   // 110x
+                    3,                      // 1110
+                    4), // 1111, next should be 0 (not checked here)
       answer->high_nibbles);
 }
 
