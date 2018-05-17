@@ -1,7 +1,9 @@
 // https://github.com/WojciechMula/toys/blob/master/000helpers/linux-perf-events.h
 #pragma once
 #ifdef __linux__
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE         /* See feature_test_macros(7) */
+#endif
 #include <unistd.h>
 #include <sys/syscall.h>   /* For SYS_xxx definitions */
 #include <asm/unistd.h> // for __NR_perf_event_open
