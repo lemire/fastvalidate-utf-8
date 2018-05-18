@@ -21,14 +21,29 @@ void test() {
                           "\xf0\x28\x8c\x28", // 6
                           "\xc0\x9f",         // 7
                           "\xf5\xff\xff\xff", // 8
-                          "\xed\xa0\x81"};    // 9
+                          "\xed\xa0\x81", // 9
+                          "\xf8\x90\x80\x80\x80", //10
+                          "123456789012345\xed", //11
+                          "123456789012345\xf1", //12
+                          "123456789012345\xc2", //13
+                        };
   for (size_t i = 0; i < 5; i++) {
     size_t len = strlen(goodsequences[i]);
-    assert(validate_utf8_fast(goodsequences[i], len));
+    if(!validate_utf8_fast(goodsequences[i], len)) {
+      printf("failing to validate good string %zu \n", i);
+      for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)goodsequences[i][j]);
+      printf("\n");
+      abort();
+    }
   }
-  for (size_t i = 0; i < 10; i++) {
+  for (size_t i = 0; i < 14; i++) {
     size_t len = strlen(badsequences[i]);
-    assert(!validate_utf8_fast(badsequences[i], len));
+    if(validate_utf8_fast(badsequences[i], len)) {
+      printf("failing to invalidate bad string %zu \n", i);
+      for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)badsequences[i][j]);
+      printf("\n");
+      abort();
+    }
   }
 
   char ascii[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 0};
