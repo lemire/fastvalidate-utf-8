@@ -11,7 +11,7 @@ work currently on ARM processors.
 Quick usage:
 ```
 make
-./test
+./unit
 ./benchmark
 ```
 
