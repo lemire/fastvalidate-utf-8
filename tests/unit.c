@@ -53,27 +53,31 @@ void test() {
 
   __m128i cont = _mm_setr_epi8(4,0,0,0,3,0,0,2,0,1,2,0,3,0,0,1);
   __m128i has_error = _mm_setzero_si128();
-  checkContinuation( &cont, _mm_set1_epi8(1), &has_error);
+  __m128i carries = carryContinuations(cont, _mm_set1_epi8(1));
+  checkContinuations(cont, carries, &has_error);
   assert(_mm_test_all_zeros(has_error, has_error));
-  assert(_mm_test_all_ones(_mm_cmpeq_epi8(cont, _mm_setr_epi8(4,3,2,1,3,2,1,2,1,1,2,1,3,2,1,1))));
+  assert(_mm_test_all_ones(_mm_cmpeq_epi8(carries, _mm_setr_epi8(4,3,2,1,3,2,1,2,1,1,2,1,3,2,1,1))));
 
   // overlap
   cont = _mm_setr_epi8(4,0,1,0,3,0,0,2,0,1,2,0,3,0,0,1);
   has_error = _mm_setzero_si128();
-  checkContinuation( &cont, _mm_set1_epi8(1), &has_error);
+  carries = carryContinuations(cont, _mm_set1_epi8(1));
+  checkContinuations(cont, carries, &has_error);
   assert(!_mm_test_all_zeros(has_error, has_error));
 
   // underlap
   cont = _mm_setr_epi8(4,0,0,0,0,0,0,2,0,1,2,0,3,0,0,1);
   has_error = _mm_setzero_si128();
-  checkContinuation( &cont, _mm_set1_epi8(1), &has_error);
+  carries = carryContinuations(cont, _mm_set1_epi8(1));
+  checkContinuations(cont, carries, &has_error);
   assert(!_mm_test_all_zeros(has_error, has_error));
 
     // register crossing
   cont = _mm_setr_epi8(0,2,0,3,0,0,2,0,1,2,0,3,0,0,1,1);
   __m128i prev = _mm_setr_epi8(3,2,1,3,2,1,2,1,1,2,1,3,2,4,3,2);
   has_error = _mm_setzero_si128();
-  checkContinuation( &cont, prev, &has_error);
+  carries = carryContinuations(cont, prev);
+  checkContinuations(cont, carries, &has_error);
   assert(_mm_test_all_zeros(has_error, has_error));
 
 }
