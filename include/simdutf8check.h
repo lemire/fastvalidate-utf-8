@@ -3,6 +3,7 @@
 #define SIMDUTF8CHECK_H
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <x86intrin.h>
 /*
  * legal utf-8 byte sequence
@@ -83,8 +84,6 @@ static inline void checkContinuations(__m128i initial_lengths,
       _mm_cmpgt_epi8(initial_lengths, _mm_setzero_si128()));
 
   *has_error = _mm_or_si128(*has_error, overunder);
-
-
 }
 
 // when 0xED is found, next byte must be no larger than 0x9F
@@ -104,8 +103,55 @@ static inline void checkFirstContinuationMax(__m128i current_bytes_unsigned,
   *has_error = _mm_or_si128(*has_error, _mm_or_si128(badfollowED, badfollowF4));
 }
 
+void dump( __m128i reg, char * msg ) {
+  printf("% 10.10s ", msg);
+  unsigned char c[16];
+  _mm_storeu_si128((__m128i *) c, reg);
+  for( int i = 0; i <16; i++ )
+    printf("%02hhX ", c[i] );
+  printf("\n");
+};
+
+// error:
+// off1_hibits
+//      off1    cur
+// C => < C2 && <= FF?  BF? any continuation
+// E => < E1 && < A0
+// F => < F1 && < 90
 // we have that E0 must be followed by something no smaller than A0
 // we have that F0 must be followed by something no smaller than 90
+static inline void checkOverlong( __m128i current_bytes,
+				  __m128i off1_current_bytes,
+				  __m128i hibits,
+				  __m128i previous_hibits,
+				  __m128i *has_error) {
+  __m128i off1_hibits = _mm_alignr_epi8(hibits, previous_hibits, 16-1);
+  __m128i initial_mins = _mm_shuffle_epi8(_mm_setr_epi8(-128,-128,-128,-128,-128,-128,-128,-128,
+							-128,-128,-128,-128,  // 10xx
+							0xC2, 0xC2, // 110x
+							0xE1, // 1110
+							0xF1),
+					  off1_hibits);
+
+  //dump(initial_mins, "initial");
+  
+  __m128i initial_under = _mm_cmpgt_epi8(initial_mins, off1_current_bytes);
+
+  //dump(initial_under, "initialu");
+  __m128i second_mins = _mm_shuffle_epi8(_mm_setr_epi8(0,0,0,0,0,0,0,0,
+							0,0,0,0,  // 10xx
+							100, 100, // 110x
+							0xA0, // 1110
+						       0x90),
+					 off1_hibits);
+  //dump(second_mins, "second");
+  __m128i second_under = _mm_cmpgt_epi8(second_mins, current_bytes);
+  //dump(second_under, "secondu");
+  *has_error = _mm_or_si128(*has_error, _mm_and_si128(initial_under, second_under));
+}
+
+
+
 static inline void checkFirstContinuationMin(__m128i current_bytes_unsigned,
                                              __m128i off1_current_bytes,
                                              __m128i *has_error) {
@@ -144,7 +190,8 @@ checkUTF8Bytes(__m128i current_bytes, struct processed_utf_bytes *previous,
   __m128i current_bytes_unsigned =
       _mm_sub_epi8(current_bytes, _mm_set1_epi8(-128));
   checkSmallerThan0xF4(current_bytes_unsigned, has_error);
-  checkLargerThan0xC2(current_bytes_unsigned, pb.high_nibbles, has_error);
+  // overlong 2-byte
+  //  checkLargerThan0xC2(current_bytes_unsigned, pb.high_nibbles, has_error);
 
   __m128i initial_lengths = continuationLengths(pb.high_nibbles);
 
@@ -158,8 +205,10 @@ checkUTF8Bytes(__m128i current_bytes, struct processed_utf_bytes *previous,
       _mm_alignr_epi8(pb.rawbytes, previous->rawbytes, 16 - 1);
   checkFirstContinuationMax(current_bytes_unsigned, off1_current_bytes,
                             has_error);
-  checkFirstContinuationMin(current_bytes_unsigned, off1_current_bytes,
-                            has_error);
+  //  checkFirstContinuationMin(current_bytes_unsigned, off1_current_bytes,
+  //                          has_error);
+  checkOverlong(current_bytes, off1_current_bytes,
+		pb.high_nibbles, previous->high_nibbles, has_error);
   return pb;
 }
 
