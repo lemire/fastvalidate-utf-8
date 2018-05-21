@@ -27,7 +27,7 @@ static inline void checkSmallerThan0xF4(__m128i current_bytes,
   // unsigned, saturates to 0 below max
   *has_error = _mm_or_si128(*has_error,
 			    _mm_subs_epu8(current_bytes,
-					  _mm_set1_epi8(0xF4 - 1)));
+					  _mm_set1_epi8(0xF4)));
 }
 
 static inline __m128i continuationLengths(__m128i high_nibbles) {
