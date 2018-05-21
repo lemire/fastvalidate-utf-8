@@ -3,7 +3,6 @@
 #define SIMDUTF8CHECK_H
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <x86intrin.h>
 /*
  * legal utf-8 byte sequence
