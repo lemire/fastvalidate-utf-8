@@ -125,9 +125,7 @@ struct processed_utf_bytes {
 static inline void count_nibbles(__m128i bytes,
                                  struct processed_utf_bytes *answer) {
   answer->rawbytes = bytes;
-  __m128i nibble_mask = _mm_set1_epi8(0x0F);
-
-  answer->high_nibbles = _mm_and_si128(_mm_srli_epi16(bytes, 4), nibble_mask);
+  answer->high_nibbles = _mm_and_si128(_mm_srli_epi16(bytes, 4), _mm_set1_epi8(0x0F));
 }
 
 // check whether the current bytes are valid UTF-8
