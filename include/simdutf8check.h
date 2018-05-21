@@ -31,24 +31,6 @@ static inline void checkSmallerThan0xF4(__m128i current_bytes_unsigned,
                                               _mm_set1_epi8(0xF4 - 128)));
 }
 
-// except for ASCII, the first byte in a character must be at least 0xC2
-static inline void checkLargerThan0xC2(__m128i current_bytes_unsigned,
-                                       __m128i high_nibbles,
-                                       __m128i *has_error) {
-  // the -128  is to compensate for the signed arithmetic (lack of
-  // _mm_cmpgt_epu8)
-  __m128i thismin = _mm_shuffle_epi8(
-      _mm_setr_epi8(0 - 128, 0 - 128, 0 - 128, 0 - 128, 0 - 128, 0 - 128,
-                    0 - 128, 0 - 128,                   // 0xxx (ASCII)
-                    0 - 128, 0 - 128, 0 - 128, 0 - 128, // 10xx (continuation)
-                    0xC2 - 128, 0 - 128,                // 110x
-                    0 - 128,                            // 1110
-                    0 - 128),                           // 1111,
-      high_nibbles);
-  *has_error =
-      _mm_or_si128(*has_error, _mm_cmpgt_epi8(thismin, current_bytes_unsigned));
-}
-
 static inline __m128i continuationLengths(__m128i high_nibbles) {
    return  _mm_shuffle_epi8(
       _mm_setr_epi8(1, 1, 1, 1, 1, 1, 1, 1, // 0xxx (ASCII)
@@ -83,8 +65,6 @@ static inline void checkContinuations(__m128i initial_lengths,
       _mm_cmpgt_epi8(initial_lengths, _mm_setzero_si128()));
 
   *has_error = _mm_or_si128(*has_error, overunder);
-
-
 }
 
 // when 0xED is found, next byte must be no larger than 0x9F
@@ -104,19 +84,35 @@ static inline void checkFirstContinuationMax(__m128i current_bytes_unsigned,
   *has_error = _mm_or_si128(*has_error, _mm_or_si128(badfollowED, badfollowF4));
 }
 
-// we have that E0 must be followed by something no smaller than A0
-// we have that F0 must be followed by something no smaller than 90
-static inline void checkFirstContinuationMin(__m128i current_bytes_unsigned,
-                                             __m128i off1_current_bytes,
-                                             __m128i *has_error) {
-  // could be done by looking for uint16_t instead
-  __m128i maskE0 = _mm_cmpeq_epi8(off1_current_bytes, _mm_set1_epi8(0xE0));
-  __m128i maskF0 = _mm_cmpeq_epi8(off1_current_bytes, _mm_set1_epi8(0xF0));
-  __m128i smallerthanA0 = _mm_cmpgt_epi8(_mm_set1_epi8(0xA0 - 128), current_bytes_unsigned);
-  __m128i smallerthan90 = _mm_cmpgt_epi8(_mm_set1_epi8(0x90 - 128), current_bytes_unsigned);
-  __m128i badfollowE0 = _mm_and_si128(maskE0, smallerthanA0);
-  __m128i badfollowF0 = _mm_and_si128(maskF0, smallerthan90);
-  *has_error = _mm_or_si128(*has_error, _mm_or_si128(badfollowE0, badfollowF0));
+// map off1_hibits => error condition
+// hibits     off1    cur
+// C       => < C2 && true  
+// E       => < E1 && < A0
+// F       => < F1 && < 90
+// else      false && false
+static inline void checkOverlong( __m128i current_bytes,
+				  __m128i off1_current_bytes,
+				  __m128i hibits,
+				  __m128i previous_hibits,
+				  __m128i *has_error) {
+  __m128i off1_hibits = _mm_alignr_epi8(hibits, previous_hibits, 16-1);
+  __m128i initial_mins = _mm_shuffle_epi8(_mm_setr_epi8(-128,-128,-128,-128,-128,-128,-128,-128,
+							-128,-128,-128,-128,  // 10xx => false
+							0xC2, 0xC2, // 110x
+							0xE1, // 1110
+							0xF1),
+					  off1_hibits);
+
+  __m128i initial_under = _mm_cmpgt_epi8(initial_mins, off1_current_bytes);
+
+  __m128i second_mins = _mm_shuffle_epi8(_mm_setr_epi8(-128,-128,-128,-128,-128,-128,-128,-128,
+						       -128,-128,-128,-128,  // 10xx => false
+						       127, 127, // 110x => true
+						       0xA0, // 1110
+						       0x90),
+					 off1_hibits);
+  __m128i second_under = _mm_cmpgt_epi8(second_mins, current_bytes);
+  *has_error = _mm_or_si128(*has_error, _mm_and_si128(initial_under, second_under));
 }
 
 struct processed_utf_bytes {
@@ -144,7 +140,6 @@ checkUTF8Bytes(__m128i current_bytes, struct processed_utf_bytes *previous,
   __m128i current_bytes_unsigned =
       _mm_sub_epi8(current_bytes, _mm_set1_epi8(-128));
   checkSmallerThan0xF4(current_bytes_unsigned, has_error);
-  checkLargerThan0xC2(current_bytes_unsigned, pb.high_nibbles, has_error);
 
   __m128i initial_lengths = continuationLengths(pb.high_nibbles);
 
@@ -158,8 +153,9 @@ checkUTF8Bytes(__m128i current_bytes, struct processed_utf_bytes *previous,
       _mm_alignr_epi8(pb.rawbytes, previous->rawbytes, 16 - 1);
   checkFirstContinuationMax(current_bytes_unsigned, off1_current_bytes,
                             has_error);
-  checkFirstContinuationMin(current_bytes_unsigned, off1_current_bytes,
-                            has_error);
+
+  checkOverlong(current_bytes, off1_current_bytes,
+		pb.high_nibbles, previous->high_nibbles, has_error);
   return pb;
 }
 
