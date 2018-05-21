@@ -10,9 +10,11 @@
 static bool validate_ascii_fast(const char *src, size_t len) {
   size_t i = 0;
   __m128i has_error = _mm_setzero_si128();
-  for (; i + 15 < len; i += 16) {
-    __m128i current_bytes = _mm_loadu_si128((const __m128i *)(src + i));
-    has_error = _mm_or_si128(has_error, current_bytes);
+  if(len >= 16) {
+    for (; i <= len - 16; i += 16) {
+      __m128i current_bytes = _mm_loadu_si128((const __m128i *)(src + i));
+      has_error = _mm_or_si128(has_error, current_bytes);
+    }
   }
   int error_mask = _mm_movemask_epi8(has_error);
 

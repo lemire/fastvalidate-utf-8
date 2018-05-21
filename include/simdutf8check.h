@@ -165,9 +165,11 @@ static bool validate_utf8_fast(const char *src, size_t len) {
   struct processed_utf_bytes previous = {.rawbytes = _mm_setzero_si128(),
                                          .high_nibbles = _mm_setzero_si128(),
                                          .carried_continuations = _mm_setzero_si128()};
-  for (; i + 15 < len; i += 16) {
-    __m128i current_bytes = _mm_loadu_si128((const __m128i *)(src + i));
-    previous = checkUTF8Bytes(current_bytes, &previous, &has_error);
+  if(len >= 16) {
+    for (; i <= len - 16; i += 16) {
+      __m128i current_bytes = _mm_loadu_si128((const __m128i *)(src + i));
+      previous = checkUTF8Bytes(current_bytes, &previous, &has_error);
+    }
   }
 
   //last part
