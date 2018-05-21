@@ -24,11 +24,10 @@
 // all byte values must be no larger than 0xF4
 static inline void checkSmallerThan0xF4(__m128i current_bytes,
                                         __m128i *has_error) {
-  // the -128  is to compensate for the signed arithmetic (lack of
-  // _mm_cmpgt_epu8)
-  *has_error =
-      _mm_or_si128(*has_error, _mm_subs_epu8(current_bytes,
-                                              _mm_set1_epi8(0xF4)));
+  // unsigned, saturates to 0 below max
+  *has_error = _mm_or_si128(*has_error,
+			    _mm_subs_epu8(current_bytes,
+					  _mm_set1_epi8(0xF4-1)));
 }
 
 static inline __m128i continuationLengths(__m128i high_nibbles) {
@@ -76,10 +75,9 @@ void dump( __m128i reg, char * msg ) {
   printf("\n");
 };
 
-
 // when 0xED is found, next byte must be no larger than 0x9F
 // when 0xF4 is found, next byte must be no larger than 0x8F
-// next byte is continuation, ie < 0
+// next byte must be continuation, ie sign bit is set, so signed < is ok
 static inline void checkFirstContinuationMax(__m128i current_bytes,
                                              __m128i off1_current_bytes,
                                              __m128i *has_error) {
@@ -149,8 +147,6 @@ checkUTF8Bytes(__m128i current_bytes, struct processed_utf_bytes *previous,
   struct processed_utf_bytes pb;
   count_nibbles(current_bytes, &pb);
 
-			//  __m128i current_bytes_unsigned =
-			//      _mm_sub_epi8(current_bytes, _mm_set1_epi8(-128));
   checkSmallerThan0xF4(current_bytes, has_error);
 
   __m128i initial_lengths = continuationLengths(pb.high_nibbles);
