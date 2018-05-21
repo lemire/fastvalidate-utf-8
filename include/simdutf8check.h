@@ -27,7 +27,7 @@ static inline void checkSmallerThan0xF4(__m128i current_bytes,
   // unsigned, saturates to 0 below max
   *has_error = _mm_or_si128(*has_error,
 			    _mm_subs_epu8(current_bytes,
-					  _mm_set1_epi8(0xF4-1)));
+					  _mm_set1_epi8(0xF4 - 1)));
 }
 
 static inline __m128i continuationLengths(__m128i high_nibbles) {
@@ -65,15 +65,6 @@ static inline void checkContinuations(__m128i initial_lengths,
 
   *has_error = _mm_or_si128(*has_error, overunder);
 }
-#include <stdio.h>
-void dump( __m128i reg, char * msg ) {
-  printf("% 10.10s ", msg);
-  unsigned char c[16];
-  _mm_storeu_si128((__m128i *) c, reg);
-  for( int i = 0; i <16; i++ )
-    printf("%02hhX ", c[i] );
-  printf("\n");
-};
 
 // when 0xED is found, next byte must be no larger than 0x9F
 // when 0xF4 is found, next byte must be no larger than 0x8F
