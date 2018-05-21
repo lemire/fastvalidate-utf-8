@@ -98,7 +98,7 @@ static inline void checkOverlong( __m128i current_bytes,
   __m128i off1_hibits = _mm_alignr_epi8(hibits, previous_hibits, 16-1);
   __m128i initial_mins = _mm_shuffle_epi8(_mm_setr_epi8(-128,-128,-128,-128,-128,-128,-128,-128,
 							-128,-128,-128,-128,  // 10xx => false
-							0xC2, 0xC2, // 110x
+							0xC2, -128, // 110x
 							0xE1, // 1110
 							0xF1),
 					  off1_hibits);
