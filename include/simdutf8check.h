@@ -69,20 +69,30 @@ static inline void checkContinuations(__m128i initial_lengths,
 // when 0xED is found, next byte must be no larger than 0x9F
 // when 0xF4 is found, next byte must be no larger than 0x8F
 // next byte must be continuation, ie sign bit is set, so signed < is ok
+
+// map off1_hibits => error condition
+// hibits     off1     cur
+// E       => == ED && > 9F
+// F       => == F4 && > 8F
+// else       false && false
+// 2 shuf, cmpeq, cmpgt, and (5 vs. 6 ins)
+
+
 static inline void checkFirstContinuationMax(__m128i current_bytes,
                                              __m128i off1_current_bytes,
+					     __m128i off1_hibits,
                                              __m128i *has_error) {
-  __m128i maskED = _mm_cmpeq_epi8(off1_current_bytes, _mm_set1_epi8(0xED));
-  __m128i maskF4 = _mm_cmpeq_epi8(off1_current_bytes, _mm_set1_epi8(0xF4));
 
-  __m128i badfollowED = _mm_and_si128(
-				      _mm_cmpgt_epi8(current_bytes, _mm_set1_epi8(0x9F)),
-				      maskED);
-  __m128i badfollowF4 = _mm_and_si128(
-				      _mm_cmpgt_epi8(current_bytes, _mm_set1_epi8(0x8F)),
-				      maskF4);
+  __m128i off1_eq = _mm_shuffle_epi8(_mm_setr_epi8(0xE0,0xE0,0xE0,0xE0,0xE0,0xE0,0xE0,
+						   0xE0,0xE0,0xE0,0xE0,0xE0,0xE0,0xE0,
+						   0xED,0xF4),
+				     off1_hibits);
+  __m128i cur_max = _mm_shuffle_epi8(_mm_setr_epi8(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0x9F,0x8F),
+				     off1_hibits);
 
-  *has_error = _mm_or_si128(*has_error, _mm_or_si128(badfollowED, badfollowF4));
+  *has_error = _mm_or_si128(*has_error,
+			    _mm_and_si128(_mm_cmpeq_epi8(off1_current_bytes, off1_eq),
+					  _mm_cmpgt_epi8(current_bytes, cur_max)));
 }
 
 // map off1_hibits => error condition
@@ -93,10 +103,8 @@ static inline void checkFirstContinuationMax(__m128i current_bytes,
 // else      false && false
 static inline void checkOverlong( __m128i current_bytes,
 				  __m128i off1_current_bytes,
-				  __m128i hibits,
-				  __m128i previous_hibits,
+				  __m128i off1_hibits,
 				  __m128i *has_error) {
-  __m128i off1_hibits = _mm_alignr_epi8(hibits, previous_hibits, 16-1);
   __m128i initial_mins = _mm_shuffle_epi8(_mm_setr_epi8(-128,-128,-128,-128,-128,-128,-128,-128,
 							-128,-128,-128,-128,  // 10xx => false
 							0xC2, -128, // 110x
@@ -148,11 +156,16 @@ checkUTF8Bytes(__m128i current_bytes, struct processed_utf_bytes *previous,
 
   __m128i off1_current_bytes =
       _mm_alignr_epi8(pb.rawbytes, previous->rawbytes, 16 - 1);
+
+  __m128i off1_hibits = _mm_alignr_epi8(pb.high_nibbles, previous->high_nibbles, 16-1);
+
   checkFirstContinuationMax(current_bytes, off1_current_bytes,
+			    off1_hibits,
                             has_error);
 
   checkOverlong(current_bytes, off1_current_bytes,
-		pb.high_nibbles, previous->high_nibbles, has_error);
+		off1_hibits,
+		has_error);
   return pb;
 }
 
