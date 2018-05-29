@@ -42,7 +42,6 @@ static inline __m128i continuationLengths(__m128i high_nibbles) {
 
 static inline __m128i carryContinuations(__m128i initial_lengths,
 					 __m128i previous_carries) {
-
   __m128i right1 = _mm_subs_epu8(
       _mm_alignr_epi8(initial_lengths, previous_carries, 16 - 1), _mm_set1_epi8(1));
   __m128i sum = _mm_add_epi8(initial_lengths, right1);
@@ -55,7 +54,6 @@ static inline __m128i carryContinuations(__m128i initial_lengths,
 static inline void checkContinuations(__m128i initial_lengths,
 				     __m128i carries,
                                      __m128i *has_error) {
-
   // overlap || underlap
   // carry > length && length > 0 || !(carry > length) && !(length > 0)
   // (carries > length) == (lengths > 0)
@@ -66,23 +64,19 @@ static inline void checkContinuations(__m128i initial_lengths,
   *has_error = _mm_or_si128(*has_error, overunder);
 }
 
+// 2-byte ==,>
 // when 0xED is found, next byte must be no larger than 0x9F
 // when 0xF4 is found, next byte must be no larger than 0x8F
 // next byte must be continuation, ie sign bit is set, so signed < is ok
-
 // map off1_hibits => error condition
 // hibits     off1     cur
 // E       => == ED && > 9F
 // F       => == F4 && > 8F
-// else       false && false
-// 2 shuf, cmpeq, cmpgt, and (5 vs. 6 ins)
-
-
+// else       false && ??
 static inline void checkFirstContinuationMax(__m128i current_bytes,
                                              __m128i off1_current_bytes,
 					     __m128i off1_hibits,
                                              __m128i *has_error) {
-
   __m128i off1_eq = _mm_shuffle_epi8(_mm_setr_epi8(0xE0,0xE0,0xE0,0xE0,0xE0,0xE0,0xE0,
 						   0xE0,0xE0,0xE0,0xE0,0xE0,0xE0,0xE0,
 						   0xED,0xF4),
@@ -95,6 +89,7 @@ static inline void checkFirstContinuationMax(__m128i current_bytes,
 					  _mm_cmpgt_epi8(current_bytes, cur_max)));
 }
 
+// 2-byte <,<
 // map off1_hibits => error condition
 // hibits     off1    cur
 // C       => < C2 && true  
@@ -121,27 +116,28 @@ static inline void checkOverlong( __m128i current_bytes,
 						       0x90),
 					 off1_hibits);
   __m128i second_under = _mm_cmpgt_epi8(second_mins, current_bytes);
+
   *has_error = _mm_or_si128(*has_error, _mm_and_si128(initial_under, second_under));
 }
 
-struct processed_utf_bytes {
+typedef struct processed_utf_bytes {
   __m128i rawbytes;
   __m128i high_nibbles;
   __m128i carried_continuations;
-};
+} processedBytes;
 
 static inline void count_nibbles(__m128i bytes,
-                                 struct processed_utf_bytes *answer) {
+                                 processedBytes *answer) {
   answer->rawbytes = bytes;
   answer->high_nibbles = _mm_and_si128(_mm_srli_epi16(bytes, 4), _mm_set1_epi8(0x0F));
 }
 
 // check whether the current bytes are valid UTF-8
 // at the end of the function, previous gets updated
-static struct processed_utf_bytes
-checkUTF8Bytes(__m128i current_bytes, struct processed_utf_bytes *previous,
-               __m128i *has_error) {
-  struct processed_utf_bytes pb;
+static processedBytes checkUTF8Bytes(__m128i current_bytes,
+				     processedBytes *previous,
+				     __m128i *has_error) {
+  processedBytes pb;
   count_nibbles(current_bytes, &pb);
 
   checkSmallerThan0xF4(current_bytes, has_error);
@@ -172,9 +168,9 @@ checkUTF8Bytes(__m128i current_bytes, struct processed_utf_bytes *previous,
 static bool validate_utf8_fast(const char *src, size_t len) {
   size_t i = 0;
   __m128i has_error = _mm_setzero_si128();
-  struct processed_utf_bytes previous = {.rawbytes = _mm_setzero_si128(),
-                                         .high_nibbles = _mm_setzero_si128(),
-                                         .carried_continuations = _mm_setzero_si128()};
+  processedBytes previous = {.rawbytes = _mm_setzero_si128(),
+			     .high_nibbles = _mm_setzero_si128(),
+			     .carried_continuations = _mm_setzero_si128()};
   if(len >= 16) {
     for (; i <= len - 16; i += 16) {
       __m128i current_bytes = _mm_loadu_si128((const __m128i *)(src + i));
