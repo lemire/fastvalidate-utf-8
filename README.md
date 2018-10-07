@@ -28,6 +28,9 @@ It should be able to validate strings using close to 1 cycle per input byte.
 
 If you expect your strings to be plain ASCII, you can spend less than 0.1 cycles per input byte to check whether that is the case using the ``validate_ascii_fast`` function found in the ``simdasciicheck.h`` header.
 
+### Command-line tool 
+
+Adam Retter maintains a useful [command-line tool](https://github.com/adamretter/utf8-validator-c) related to this library.
 
 ### Experimental results
 
