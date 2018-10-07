@@ -1,6 +1,7 @@
 
 #ifndef SIMDUTF8CHECK_H
 #define SIMDUTF8CHECK_H
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <x86intrin.h>
