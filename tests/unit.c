@@ -35,6 +35,14 @@ void test() {
       printf("\n");
       abort();
     }
+#ifdef __AVX2__
+    if(!avx_validate_utf8_fast(goodsequences[i], len)) {
+      printf("(avx) failing to validate good string %zu \n", i);
+      for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)goodsequences[i][j]);
+      printf("\n");
+      abort();
+    }
+#endif
   }
   for (size_t i = 0; i < 14; i++) {
     size_t len = strlen(badsequences[i]);
@@ -44,6 +52,14 @@ void test() {
       printf("\n");
       abort();
     }
+#ifdef __AVX2__
+    if(avx_validate_utf8_fast(badsequences[i], len)) {
+      printf("(avx) failing to invalidate bad string %zu \n", i);
+      for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)badsequences[i][j]);
+      printf("\n");
+      abort();
+    }
+#endif
   }
 
   char ascii[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 0};

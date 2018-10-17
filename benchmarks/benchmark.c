@@ -60,7 +60,6 @@ static bool validate_ascii_nosimd(const char *src, size_t len) {
   uint64_t final_mask = mask1 | mask2 | mask3 | mask4 | tail_mask;
   return !(final_mask & 0x8080808080808080);
 }
-#endif 
 
 static bool validate_ascii_nointrin(const char *src, size_t len) {
   const char* end = src + len;
@@ -84,6 +83,7 @@ static bool validate_ascii_nointrin(const char *src, size_t len) {
   uint64_t final_mask = mask1 | mask2 | mask3 | mask4 | tail_mask;
   return !(final_mask & 0x8080808080808080);
 }
+#endif 
 
 void demo(size_t N) {
   printf("string size = %zu \n", N);
@@ -94,12 +94,18 @@ void demo(size_t N) {
 
   BEST_TIME(validate_utf8_fast(data, N), expected, populate(data, N), repeat, N,
             true);
+#ifdef __AVX2__           
+  BEST_TIME(avx_validate_utf8_fast(data, N), expected, populate(data, N), repeat, N,
+            true);
+#endif
 
   BEST_TIME(validate_ascii_fast(data, N), expected, populate(data, N), repeat,
             N, true);
 
+#ifdef __AVX2__           
   BEST_TIME(validate_ascii_fast_avx(data, N), expected, populate(data, N), repeat,
             N, true);
+#endif
 #ifdef GCC_COMPILER
   BEST_TIME(validate_ascii_nosimd(data, N), expected, populate(data, N), repeat,
             N, true);
