@@ -40,10 +40,10 @@ On a Skylake processor, using GCC, we get:
 $ ./benchmark
 string size = 65536
 We are feeding ascii so it is always going to be ok.
-validate_utf8_fast(data, N)                                     :  0.702 cycles per operation (best)     0.703 cycles per operation (avg)
-validate_ascii_fast(data, N)                                    :  0.081 cycles per operation (best)     0.083 cycles per operation (avg)
-validate_utf8_fast(data, N)                                      :  0.700 cycles per operation (best)     0.701 cycles per operation (avg)  (linux counter)
-validate_ascii_fast(data, N)                                     :  0.081 cycles per operation (best)     0.085 cycles per operation (avg)  (linux counter)
+validate_utf8_fast(data, N)                                     :  0.703 cycles per operation (best)     0.706 cycles per operation (avg)
+validate_utf8_fast_avx(data, N)                                 :  0.452 cycles per operation (best)     0.454 cycles per operation (avg)
+validate_ascii_fast(data, N)                                    :  0.085 cycles per operation (best)     0.086 cycles per operation (avg)
+validate_ascii_fast_avx(data, N)                                :  0.051 cycles per operation (best)     0.052 cycles per operation (avg)
 ```
 
 Thus, after rounding, it takes 0.7 cycles per input byte to validate UTF-8 strings.

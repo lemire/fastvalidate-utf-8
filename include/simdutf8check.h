@@ -348,7 +348,7 @@ avxcheckUTF8Bytes(__m256i current_bytes,
   return pb;
 }
 
-static bool avx_validate_utf8_fast(const char *src, size_t len) {
+static bool validate_utf8_fast_avx(const char *src, size_t len) {
   size_t i = 0;
   __m256i has_error = _mm256_setzero_si256();
   struct avx_processed_utf_bytes previous = {
