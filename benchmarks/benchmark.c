@@ -33,6 +33,58 @@ void populate(char *data, size_t N) {
     data[i] = rand() & 0x7f;
 }
 
+#define GCC_COMPILER (defined(__GNUC__) && !defined(__clang__))
+
+
+#ifdef GCC_COMPILER
+__attribute__((optimize("no-tree-vectorize"))) // works only with GCC
+static bool validate_ascii_nosimd(const char *src, size_t len) {
+  const char* end = src + len;
+  uint64_t mask1 = 0, mask2 = 0, mask3 = 0, mask4 = 0;
+  
+  for (; src < end - 32; src += 32) {
+    const uint64_t* p = (const uint64_t*) src;
+    mask1 |= p[0];
+    mask2 |= p[1];
+    mask3 |= p[2];
+    mask4 |= p[3];
+  }
+  for (; src < end - 8; src += 8) { 
+    const uint64_t* p = (const uint64_t*) src;
+     mask1 |= p[0];
+  }
+  uint8_t tail_mask = 0;
+  for (; src < end; src++) {
+    tail_mask |= * (const uint8_t*) src;
+  }
+  uint64_t final_mask = mask1 | mask2 | mask3 | mask4 | tail_mask;
+  return !(final_mask & 0x8080808080808080);
+}
+#endif 
+
+static bool validate_ascii_nointrin(const char *src, size_t len) {
+  const char* end = src + len;
+  uint64_t mask1 = 0, mask2 = 0, mask3 = 0, mask4 = 0;
+  
+  for (; src < end - 32; src += 32) {
+    const uint64_t* p = (const uint64_t*) src;
+    mask1 |= p[0];
+    mask2 |= p[1];
+    mask3 |= p[2];
+    mask4 |= p[3];
+  }
+  for (; src < end - 8; src += 8) { 
+    const uint64_t* p = (const uint64_t*) src;
+     mask1 |= p[0];
+  }
+  uint8_t tail_mask = 0;
+  for (; src < end; src++) {
+    tail_mask |= * (const uint8_t*) src;
+  }
+  uint64_t final_mask = mask1 | mask2 | mask3 | mask4 | tail_mask;
+  return !(final_mask & 0x8080808080808080);
+}
+
 void demo(size_t N) {
   printf("string size = %zu \n", N);
   char *data = (char *)malloc(N);
@@ -44,6 +96,12 @@ void demo(size_t N) {
             true);
 
   BEST_TIME(validate_ascii_fast(data, N), expected, populate(data, N), repeat,
+            N, true);
+#ifdef GCC_COMPILER
+  BEST_TIME(validate_ascii_nosimd(data, N), expected, populate(data, N), repeat,
+            N, true);
+#endif 
+  BEST_TIME(validate_ascii_nointrin(data, N), expected, populate(data, N), repeat,
             N, true);
 #ifdef __linux__
   BEST_TIME_LINUX(validate_utf8_fast(data, N), expected, populate(data, N),
