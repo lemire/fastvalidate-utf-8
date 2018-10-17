@@ -97,6 +97,9 @@ void demo(size_t N) {
 
   BEST_TIME(validate_ascii_fast(data, N), expected, populate(data, N), repeat,
             N, true);
+
+  BEST_TIME(validate_ascii_fast_avx(data, N), expected, populate(data, N), repeat,
+            N, true);
 #ifdef GCC_COMPILER
   BEST_TIME(validate_ascii_nosimd(data, N), expected, populate(data, N), repeat,
             N, true);
