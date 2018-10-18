@@ -97,6 +97,8 @@ void demo(size_t N) {
 #ifdef __AVX2__           
   BEST_TIME(validate_utf8_fast_avx(data, N), expected, populate(data, N), repeat, N,
             true);
+  BEST_TIME(validate_utf8_fast_avx_asciipath(data, N), expected, populate(data, N), repeat, N,
+            true);
 #endif
 
   BEST_TIME(validate_ascii_fast(data, N), expected, populate(data, N), repeat,

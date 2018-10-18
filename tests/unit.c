@@ -10,7 +10,11 @@
 #include "simdasciicheck.h"
 
 
+
+
 void test() {
+  size_t N = 128;
+  char buffer[N];
   char *goodsequences[] = {"a", "\xc3\xb1", "\xe2\x82\xa1", "\xf0\x90\x8c\xbc", "안녕하세요, 세상"};
   char *badsequences[] = {"\xc3\x28",         // 0
                           "\xa0\xa1",         // 1
@@ -28,6 +32,7 @@ void test() {
                           "123456789012345\xc2", //13
                         };
   for (size_t i = 0; i < 5; i++) {
+    printf("good sequence %zu \n", i);
     size_t len = strlen(goodsequences[i]);
     if(!validate_utf8_fast(goodsequences[i], len)) {
       printf("failing to validate good string %zu \n", i);
@@ -35,6 +40,20 @@ void test() {
       printf("\n");
       abort();
     }
+    for(size_t offset = 0; offset < N - len; offset++) {
+      memset(buffer,0x20,N);
+      printf(".");
+      fflush(NULL);
+      memcpy(buffer + offset, goodsequences[i], len);
+      //printf("%*.*s\n",(int)N,(int)N,buffer);
+      if(!validate_utf8_fast(buffer, N)) {
+            printf("failing to validate good string %zu with offset %zu \n", i, N);
+            for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)goodsequences[i][j]);
+            printf("\n");
+            abort();
+      }
+    }
+    printf("\n");
 #ifdef __AVX2__
     if(!validate_utf8_fast_avx(goodsequences[i], len)) {
       printf("(avx) failing to validate good string %zu \n", i);
@@ -42,9 +61,43 @@ void test() {
       printf("\n");
       abort();
     }
+    for(size_t offset = 0; offset < N - len; offset++) {
+      printf(".");
+      fflush(NULL);
+      memset(buffer,0x20,N);
+      memcpy(buffer + offset, goodsequences[i], len);
+      if(!validate_utf8_fast_avx(buffer, N)) {
+            printf("(avx) failing to validate good string %zu with offset %zu \n", i, N);
+            for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)goodsequences[i][j]);
+            printf("\n");
+            abort();
+      }
+    }
+    printf("\n");
+    if(!validate_utf8_fast_avx_asciipath(goodsequences[i], len)) {
+      printf("(avx) failing to validate good string %zu \n", i);
+      for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)goodsequences[i][j]);
+      printf("\n");
+      abort();
+    }
+    for(size_t offset = 0; offset < N - len; offset++) {
+      printf(".");
+      fflush(NULL);
+      memset(buffer,0x20,N);
+      memcpy(buffer + offset, goodsequences[i], len);
+      if(!validate_utf8_fast_avx_asciipath(buffer, N)) {
+            printf("(avx) failing to validate good string %zu with offset %zu \n", i, N);
+            for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)goodsequences[i][j]);
+            printf("\n");
+            abort();
+      }
+    }
+    printf("\n");
 #endif
   }
   for (size_t i = 0; i < 14; i++) {
+    printf("bad sequence %zu \n", i);
+
     size_t len = strlen(badsequences[i]);
     if(validate_utf8_fast(badsequences[i], len)) {
       printf("failing to invalidate bad string %zu \n", i);
@@ -52,6 +105,19 @@ void test() {
       printf("\n");
       abort();
     }
+    for(size_t offset = 0; offset < N - len; offset++) {
+      printf(".");
+      fflush(NULL);
+      memset(buffer,0x20,N);
+      memcpy(buffer + offset, badsequences[i], len);
+      if(validate_utf8_fast(buffer, N)) {
+            printf("failing to invalidate bad string %zu with offset %zu \n", i, N);
+            for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)badsequences[i][j]);
+            printf("\n");
+            abort();
+      }
+    }
+    printf("\n");
 #ifdef __AVX2__
     if(validate_utf8_fast_avx(badsequences[i], len)) {
       printf("(avx) failing to invalidate bad string %zu \n", i);
@@ -59,6 +125,38 @@ void test() {
       printf("\n");
       abort();
     }
+    for(size_t offset = 0; offset < N - len; offset++) {
+      printf(".");
+      fflush(NULL);
+      memset(buffer,0x20,N);
+      memcpy(buffer + offset, badsequences[i], len);
+      if(validate_utf8_fast_avx(buffer, N)) {
+            printf("(avx) failing to invalidate bad string %zu with offset %zu \n", i, N);
+            for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)badsequences[i][j]);
+            printf("\n");
+            abort();
+      }
+    }
+    printf("\n");
+    if(validate_utf8_fast_avx_asciipath(badsequences[i], len)) {
+      printf("(avx) failing to invalidate bad string %zu \n", i);
+      for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)badsequences[i][j]);
+      printf("\n");
+      abort();
+    }
+    for(size_t offset = 0; offset < N - len; offset++) {
+      printf(".");
+      fflush(NULL);
+      memset(buffer,0x20,N);
+      memcpy(buffer + offset, badsequences[i], len);
+      if(validate_utf8_fast_avx_asciipath(buffer, N)) {
+            printf("(avx) failing to invalidate bad string %zu with offset %zu \n", i, N);
+            for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)badsequences[i][j]);
+            printf("\n");
+            abort();
+      }
+    }
+    printf("\n");
 #endif
   }
 
