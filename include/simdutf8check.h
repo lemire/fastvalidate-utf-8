@@ -349,20 +349,20 @@ avxcheckUTF8Bytes(__m256i current_bytes,
   return pb;
 }
 
-
-
 // check whether the current bytes are valid UTF-8
 // at the end of the function, previous gets updated
 static struct avx_processed_utf_bytes
 avxcheckUTF8Bytes_asciipath(__m256i current_bytes,
-                  struct avx_processed_utf_bytes *previous,
-                  __m256i *has_error) {
-  if(_mm256_testz_si256(current_bytes,_mm256_set1_epi8(0x80))) { // fast ascii path
+                            struct avx_processed_utf_bytes *previous,
+                            __m256i *has_error) {
+  if (_mm256_testz_si256(current_bytes,
+                         _mm256_set1_epi8(0x80))) { // fast ascii path
     *has_error = _mm256_or_si256(
         _mm256_cmpgt_epi8(previous->carried_continuations,
                           _mm256_setr_epi8(9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
                                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
-                                           9, 9, 9, 9, 9, 9, 9, 1)),*has_error);
+                                           9, 9, 9, 9, 9, 9, 9, 1)),
+        *has_error);
     return *previous;
   }
 
@@ -397,7 +397,8 @@ static bool validate_utf8_fast_avx_asciipath(const char *src, size_t len) {
   if (len >= 32) {
     for (; i <= len - 32; i += 32) {
       __m256i current_bytes = _mm256_loadu_si256((const __m256i *)(src + i));
-      previous = avxcheckUTF8Bytes_asciipath(current_bytes, &previous, &has_error);
+      previous =
+          avxcheckUTF8Bytes_asciipath(current_bytes, &previous, &has_error);
     }
   }
 
@@ -419,7 +420,6 @@ static bool validate_utf8_fast_avx_asciipath(const char *src, size_t len) {
 
   return _mm256_testz_si256(has_error, has_error);
 }
-
 
 static bool validate_utf8_fast_avx(const char *src, size_t len) {
   size_t i = 0;
