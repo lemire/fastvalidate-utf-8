@@ -40,10 +40,25 @@ On a Skylake processor, using GCC, we get:
 $ ./benchmark
 string size = 65536
 We are feeding ascii so it is always going to be ok.
-validate_utf8_fast(data, N)                                     :  0.703 cycles per operation (best)     0.706 cycles per operation (avg)
-validate_utf8_fast_avx(data, N)                                 :  0.452 cycles per operation (best)     0.454 cycles per operation (avg)
-validate_ascii_fast(data, N)                                    :  0.085 cycles per operation (best)     0.086 cycles per operation (avg)
-validate_ascii_fast_avx(data, N)                                :  0.051 cycles per operation (best)     0.052 cycles per operation (avg)
+It favors schemes that skip ASCII characters.
+validate_utf8(data, N)                                          :  1.256 cycles per operation (best)     1.316 cycles per operation (avg)
+validate_utf8_fast(data, N)                                     :  0.704 cycles per operation (best)     0.706 cycles per operation (avg)
+validate_utf8_fast_avx(data, N)                                 :  0.450 cycles per operation (best)     0.452 cycles per operation (avg)
+validate_utf8_fast_avx_asciipath(data, N)                       :  0.088 cycles per operation (best)     0.091 cycles per operation (avg)
+validate_ascii_fast(data, N)                                    :  0.082 cycles per operation (best)     0.084 cycles per operation (avg)
+validate_ascii_fast_avx(data, N)                                :  0.050 cycles per operation (best)     0.074 cycles per operation (avg)
+validate_ascii_nosimd(data, N)                                  :  0.104 cycles per operation (best)     0.106 cycles per operation (avg)
+validate_ascii_nointrin(data, N)                                :  0.068 cycles per operation (best)     0.088 cycles per operation (avg)
+validate_utf8_fast(data, N)                                      :  0.701 cycles per operation (best)     0.703 cycles per operation (avg)  (linux counter)
+validate_ascii_fast(data, N)                                     :  0.083 cycles per operation (best)     0.085 cycles per operation (avg)  (linux counter)
+
+
+string size (approx) = 65536
+Producing random-looking UTF-8
+validate_utf8(data, actualN)                                    :  10.967 cycles per operation (best)     11.005 cycles per operation (avg)
+validate_utf8_fast(data, actualN)                               :  0.702 cycles per operation (best)     0.705 cycles per operation (avg)
+validate_utf8_fast_avx(data, actualN)                           :  0.448 cycles per operation (best)     0.485 cycles per operation (avg)
+validate_utf8_fast_avx_asciipath(data, actualN)                 :  0.480 cycles per operation (best)     0.594 cycles per operation (avg)
 ```
 
 Thus, after rounding, it takes 0.7 cycles per input byte to validate UTF-8 strings.
