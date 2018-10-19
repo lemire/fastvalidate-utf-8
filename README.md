@@ -24,9 +24,9 @@ Code usage:
   bool is_it_valid = validate_utf8_fast(mystring, thestringlength);
 ```
 
-It should be able to validate strings using close to 1 cycle per input byte.
+It should be able to validate strings using less than 1 cycle per input byte.
 
-If you expect your strings to be plain ASCII, you can spend less than 0.1 cycles per input byte to check whether that is the case using the ``validate_ascii_fast`` function found in the ``simdasciicheck.h`` header.
+If you expect your strings to be plain ASCII, you can spend less than 0.1 cycles per input byte to check whether that is the case using the ``validate_ascii_fast`` function found in the ``simdasciicheck.h`` header. There are even faster functions like ``validate_utf8_fast_avx``.
 
 ### Command-line tool 
 
@@ -64,4 +64,5 @@ validate_utf8_fast_avx_asciipath(data, actualN)                 :  0.480 cycles 
 Thus, after rounding, it takes 0.7 cycles per input byte to validate UTF-8 strings.
 
 * Blog post: [Validating UTF-8 strings using as little as 0.7 cycles per byte](https://lemire.me/blog/2018/05/16/validating-utf-8-strings-using-as-little-as-0-7-cycles-per-byte/)
+* Blog post: [Validating UTF-8 bytes using only 0.45 cycles per byte (AVX edition)](https://lemire.me/blog/2018/10/19/validating-utf-8-bytes-using-only-0-45-cycles-per-byte-avx-edition/)
 
