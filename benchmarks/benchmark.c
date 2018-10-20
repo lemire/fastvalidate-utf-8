@@ -148,28 +148,16 @@ static bool validate_utf8(const char *b, size_t length) {
         return true;
       }
       byte1 = bytes[index++];
-      //  printf("in ascii read 0x%x\n", byte1);
     } while (byte1 < 0x80);
-    // printf("starting at 0x%x\n", byte1);
     if (byte1 < 0xE0) {
       // Two-byte form.
       if (index == length) {
-        printf("c1\n");
-        for (int i = index - 10; i < length; i++)
-          printf(" 0x%x ", bytes[i]);
-        printf("\n");
         return false;
       }
-      //                     printf("c2 0x%x 0x%x \n",byte1, bytes[index]  );
-
       if (byte1 < 0xC2 || bytes[index++] > 0xBF) {
-        printf("c2 %x %x \n", byte1, bytes[index - 1]);
-
         return false;
       }
     } else if (byte1 < 0xF0) {
-      // printf("c3\n");
-
       // Three-byte form.
       if (index + 1 >= length) {
         return false;
@@ -188,8 +176,6 @@ static bool validate_utf8(const char *b, size_t length) {
 
       // Four-byte form.
       if (index + 2 >= length) {
-        printf("c4\n");
-
         return false;
       }
       int byte2 = bytes[index++];
@@ -203,8 +189,6 @@ static bool validate_utf8(const char *b, size_t length) {
           || bytes[index++] > 0xBF
           // Fourth byte trailing-byte test
           || bytes[index++] > 0xBF) {
-        printf("c5\n");
-
         return false;
       }
     }
