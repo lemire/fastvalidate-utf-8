@@ -66,3 +66,7 @@ Thus, after rounding, it takes 0.7 cycles per input byte to validate UTF-8 strin
 * Blog post: [Validating UTF-8 strings using as little as 0.7 cycles per byte](https://lemire.me/blog/2018/05/16/validating-utf-8-strings-using-as-little-as-0-7-cycles-per-byte/)
 * Blog post: [Validating UTF-8 bytes using only 0.45 cycles per byte (AVX edition)](https://lemire.me/blog/2018/10/19/validating-utf-8-bytes-using-only-0-45-cycles-per-byte-avx-edition/)
 
+## In Go
+
+[There is an assembly wrapper in Go](https://github.com/stuartcarnie/go-simd) by Stuart Carnie.
+
