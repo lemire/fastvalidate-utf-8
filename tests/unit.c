@@ -163,10 +163,13 @@ void test() {
   char ascii[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 0};
   char notascii[] = {128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 238, 255, 0};
   assert(validate_ascii_fast(ascii, strlen(ascii)));
+#ifdef __AVX2__
   assert(validate_ascii_fast_avx(ascii, strlen(ascii)));
+#endif 
   assert(!validate_ascii_fast(notascii, strlen(notascii)));
+#ifdef __AVX2__
   assert(!validate_ascii_fast_avx(notascii, strlen(notascii)));
-
+#endif
 
   __m128i cont = _mm_setr_epi8(4,0,0,0,3,0,0,2,0,1,2,0,3,0,0,1);
   __m128i has_error = _mm_setzero_si128();
