@@ -8,7 +8,7 @@ This is a header-only C library to validate UTF-8 strings at high speeds using S
 Specifically, this expects an x64 processor (capable of SSE instruction). It will not
 work currently on ARM processors.
 
-A modified version of this code improved the performance of [Scylla](https://github.com/scylladb/scylla).
+A modified version of this code improved the performance of [Scylla](https://github.com/scylladb/scylla/commit/6fadba56cc18bebe6648e6aec09be1b0b93f4817).
 
 Quick usage:
 ```
