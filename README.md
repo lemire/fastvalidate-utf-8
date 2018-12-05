@@ -8,6 +8,8 @@ This is a header-only C library to validate UTF-8 strings at high speeds using S
 Specifically, this expects an x64 processor (capable of SSE instruction). It will not
 work currently on ARM processors.
 
+A modified version of this code improved the performance of [Scylla](https://github.com/scylladb/scylla).
+
 Quick usage:
 ```
 make
@@ -69,4 +71,9 @@ Thus, after rounding, it takes 0.7 cycles per input byte to validate UTF-8 strin
 ## In Go
 
 [There is an assembly wrapper in Go](https://github.com/stuartcarnie/go-simd) by Stuart Carnie.
+
+## ARM Neon and SSE4
+
+[Fast UTF-8 validation with range algorithm (NEON+SSE4)](https://github.com/cyb70289/utf8/)
+
 
