@@ -30,6 +30,7 @@ void test() {
                           "123456789012345\xed", //11
                           "123456789012345\xf1", //12
                           "123456789012345\xc2", //13
+                          "\xC2\x7F" // 14
                         };
   for (size_t i = 0; i < 5; i++) {
     printf("good sequence %zu \n", i);
@@ -95,7 +96,7 @@ void test() {
     printf("\n");
 #endif
   }
-  for (size_t i = 0; i < 14; i++) {
+  for (size_t i = 0; i < 15; i++) {
     printf("bad sequence %zu \n", i);
 
     size_t len = strlen(badsequences[i]);
