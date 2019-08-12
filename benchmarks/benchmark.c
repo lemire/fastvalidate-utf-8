@@ -8,7 +8,9 @@
 
 #include "benchmark.h"
 #include "simdasciicheck.h"
+#include "simdasciicheck_avx512.h"
 #include "simdutf8check.h"
+#include "simdutf8check_avx512.h"
 
 #include <x86intrin.h>
 /*
@@ -214,11 +216,22 @@ void demo(size_t N) {
             populate(data, N), repeat, N, true);
 #endif
 
+#ifdef __AVX512F__
+  BEST_TIME(validate_utf8_fast_avx512(data, N), expected, populate(data, N),
+            repeat, N, true);
+  BEST_TIME(validate_utf8_fast_avx512_asciipath(data, N), expected,
+            populate(data, N), repeat, N, true);
+#endif
+
   BEST_TIME(validate_ascii_fast(data, N), expected, populate(data, N), repeat,
             N, true);
 
 #ifdef __AVX2__
   BEST_TIME(validate_ascii_fast_avx(data, N), expected, populate(data, N),
+            repeat, N, true);
+#endif
+#ifdef __AVX512F__
+  BEST_TIME(validate_ascii_fast_avx512(data, N), expected, populate(data, N),
             repeat, N, true);
 #endif
 #ifdef GCC_COMPILER
@@ -255,6 +268,12 @@ void demo_utf8(size_t N) {
   BEST_TIME(validate_utf8_fast_avx(data, actualN), expected,
             actualN = populate_utf8(data, N), repeat, N, true);
   BEST_TIME(validate_utf8_fast_avx_asciipath(data, actualN), expected,
+            actualN = populate_utf8(data, N), repeat, N, true);
+#endif
+#ifdef __AVX512F__
+  BEST_TIME(validate_utf8_fast_avx512(data, actualN), expected,
+            actualN = populate_utf8(data, N), repeat, N, true);
+  BEST_TIME(validate_utf8_fast_avx512_asciipath(data, actualN), expected,
             actualN = populate_utf8(data, N), repeat, N, true);
 #endif
   printf("\n\n");
