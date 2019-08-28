@@ -23,7 +23,11 @@
  *
  */
 
-#ifdef __AVX512F__
+#if defined(__AVX512F__) && defined(__AVX512VL__) && defined(__AVX512VBMI__)
+#define AVX512_IMPLEMENTATION
+#endif
+
+#ifdef AVX512_IMPLEMENTATION
 
 /*****************************/
 static inline __m512i avx512_push_last_byte_of_a_to_b(__m512i a, __m512i b) {
@@ -288,6 +292,6 @@ static bool validate_utf8_fast_avx512(const char *src, size_t len) {
   return !has_error;
 }
 
-#endif // __AVX512F__
+#endif // AVX512_IMPLEMENTATION
 
 #endif // SIMDUTF8CHECK_AXV512_H

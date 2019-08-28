@@ -54,7 +54,7 @@ void test() {
       }
     }
     printf("\n");
-#ifdef __AVX512F__
+#ifdef AVX512_IMPLEMENTATION
     if(!validate_utf8_fast_avx512(goodsequences[i], len)) {
       printf("(avx512) failing to validate good string %zu \n", i);
       for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)goodsequences[i][j]);
@@ -198,7 +198,7 @@ void test() {
     }
     printf("\n");
 #endif
-#ifdef __AVX512F__
+#ifdef AVX512_IMPLEMENTATION
     if(validate_utf8_fast_avx512(badsequences[i], len)) {
       printf("(avx512) failing to invalidate bad string %zu \n", i);
       for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)badsequences[i][j]);
@@ -246,14 +246,14 @@ void test() {
 #ifdef __AVX2__
   assert(validate_ascii_fast_avx(ascii, strlen(ascii)));
 #endif 
-#ifdef __AVX512F__
+#ifdef AVX512_IMPLEMENTATION
   assert(validate_ascii_fast_avx512(ascii, strlen(ascii)));
 #endif 
   assert(!validate_ascii_fast(notascii, strlen(notascii)));
 #ifdef __AVX2__
   assert(!validate_ascii_fast_avx(notascii, strlen(notascii)));
 #endif
-#ifdef __AVX512F__
+#ifdef AVX512_IMPLEMENTATION
   assert(!validate_ascii_fast_avx512(notascii, strlen(notascii)));
 #endif
 
@@ -264,12 +264,14 @@ void test() {
   assert(_mm_test_all_zeros(has_error, has_error));
   assert(_mm_test_all_ones(_mm_cmpeq_epi8(carries, _mm_setr_epi8(4,3,2,1,3,2,1,2,1,1,2,1,3,2,1,1))));
 
+#ifdef AVX512_IMPLEMENTATION
   __m512i cont512 = _mm512_set4_epi32(0x01000003, 0x00020100, 0x02000003, 0x00000004);
   __mmask64 has_error512 = 0;
   __m512i carries512 = avx512_carryContinuations(cont512, _mm512_set1_epi8(1));
   avx512_checkContinuations(cont512, carries512, &has_error512);
   assert(has_error512 == 0); // all zeros
   assert(_mm512_cmpeq_epi8_mask(carries512,_mm512_set4_epi32(0x01010203, 0x01020101, 0x02010203, 0x01020304)) == 0xFFFFFFFFFFFFFFFF); // all ones
+#endif
 
   // overlap
   cont = _mm_setr_epi8(4,0,1,0,3,0,0,2,0,1,2,0,3,0,0,1);
@@ -278,12 +280,13 @@ void test() {
   checkContinuations(cont, carries, &has_error);
   assert(!_mm_test_all_zeros(has_error, has_error));
 
+#ifdef AVX512_IMPLEMENTATION
   cont512 = _mm512_set4_epi32(0x01000003, 0x00020100, 0x02000003, 0x00010004);
   has_error512 = 0;
   carries512 = avx512_carryContinuations(cont512, _mm512_set1_epi8(1));
   avx512_checkContinuations(cont512, carries512, &has_error512);
   assert(has_error512 != 0);
-
+#endif
 
   // underlap
   cont = _mm_setr_epi8(4,0,0,0,0,0,0,2,0,1,2,0,3,0,0,1);
@@ -292,11 +295,13 @@ void test() {
   checkContinuations(cont, carries, &has_error);
   assert(!_mm_test_all_zeros(has_error, has_error));
 
+#ifdef AVX512_IMPLEMENTATION
   cont512 = _mm512_set4_epi32(0x01000003, 0x00020100, 0x02000000, 0x00000004);
   has_error512 = 0;
   carries512 = avx512_carryContinuations(cont512, _mm512_set1_epi8(1));
   avx512_checkContinuations(cont512, carries512, &has_error512);
   assert(has_error512 != 0);
+#endif
 
     // register crossing
   cont = _mm_setr_epi8(0,2,0,3,0,0,2,0,1,2,0,3,0,0,1,1);
@@ -306,12 +311,14 @@ void test() {
   checkContinuations(cont, carries, &has_error);
   assert(_mm_test_all_zeros(has_error, has_error));
 
+#ifdef AVX512_IMPLEMENTATION
   cont512 = _mm512_set4_epi32(0x01010000, 0x03000201, 0x00020000, 0x03000200);
   __m512i prev512 = _mm512_set4_epi32(0x02030402, 0x03010201, 0x01020102, 0x03010203);
   has_error512 = 0;
   carries512 = avx512_carryContinuations(cont512, prev512);
   avx512_checkContinuations(cont512, carries512, &has_error512);
   assert(has_error512 != 0);
+#endif
 }
 
 int main() {

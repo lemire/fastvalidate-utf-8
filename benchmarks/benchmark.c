@@ -216,7 +216,7 @@ void demo(size_t N) {
             populate(data, N), repeat, N, true);
 #endif
 
-#ifdef __AVX512F__
+#ifdef AVX512_IMPLEMENTATION
   BEST_TIME(validate_utf8_fast_avx512(data, N), expected, populate(data, N),
             repeat, N, true);
   BEST_TIME(validate_utf8_fast_avx512_asciipath(data, N), expected,
@@ -230,7 +230,7 @@ void demo(size_t N) {
   BEST_TIME(validate_ascii_fast_avx(data, N), expected, populate(data, N),
             repeat, N, true);
 #endif
-#ifdef __AVX512F__
+#ifdef AVX512_IMPLEMENTATION
   BEST_TIME(validate_ascii_fast_avx512(data, N), expected, populate(data, N),
             repeat, N, true);
 #endif
@@ -270,7 +270,7 @@ void demo_utf8(size_t N) {
   BEST_TIME(validate_utf8_fast_avx_asciipath(data, actualN), expected,
             actualN = populate_utf8(data, N), repeat, N, true);
 #endif
-#ifdef __AVX512F__
+#ifdef AVX512_IMPLEMENTATION
   BEST_TIME(validate_utf8_fast_avx512(data, actualN), expected,
             actualN = populate_utf8(data, N), repeat, N, true);
   BEST_TIME(validate_utf8_fast_avx512_asciipath(data, actualN), expected,
