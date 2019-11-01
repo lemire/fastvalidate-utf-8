@@ -7,9 +7,9 @@
 #include <string.h>
 
 #include "benchmark.h"
+#include "hoehrmann.h"
 #include "simdasciicheck.h"
 #include "simdutf8check.h"
-
 #include <x86intrin.h>
 /*
  * legal utf-8 byte sequence
@@ -207,6 +207,18 @@ void demo(size_t N) {
             true);
   BEST_TIME(validate_utf8_fast(data, N), expected, populate(data, N), repeat, N,
             true);
+  BEST_TIME(shiftless_validate_dfa_utf8_branchless(data, N), expected,
+            populate(data, N), repeat, N, true);
+  BEST_TIME(shiftless_validate_dfa_utf8_branchless(data, N), expected,
+            populate(data, N), repeat, N, true);
+  BEST_TIME(shiftless_validate_dfa_utf8(data, N), expected, populate(data, N),
+            repeat, N, true);
+  BEST_TIME(shiftless_validate_dfa_utf8(data, N), expected, populate(data, N),
+            repeat, N, true);
+  BEST_TIME(validate_dfa_utf8_double(data, N), expected, populate(data, N),
+            repeat, N, true);
+  BEST_TIME(shiftless_validate_dfa_utf8_double(data, N), expected, populate(data, N),
+            repeat, N, true);
 #ifdef __AVX2__
   BEST_TIME(validate_utf8_fast_avx(data, N), expected, populate(data, N),
             repeat, N, true);
@@ -249,7 +261,23 @@ void demo_utf8(size_t N) {
 
   BEST_TIME(validate_utf8(data, actualN), expected,
             actualN = populate_utf8(data, N), repeat, N, true);
-  BEST_TIME(validate_utf8_fast(data, actualN), expected,
+
+  BEST_TIME(validate_utf8(data, actualN), expected,
+            actualN = populate_utf8(data, N), repeat, N, true);
+
+  BEST_TIME(shiftless_validate_dfa_utf8_branchless(data, actualN), expected,
+            actualN = populate_utf8(data, N), repeat, N, true);
+  BEST_TIME(shiftless_validate_dfa_utf8_branchless(data, actualN), expected,
+            actualN = populate_utf8(data, N), repeat, N, true);
+  BEST_TIME(shiftless_validate_dfa_utf8(data, actualN), expected,
+            actualN = populate_utf8(data, N), repeat, N, true);
+  BEST_TIME(shiftless_validate_dfa_utf8(data, actualN), expected,
+            actualN = populate_utf8(data, N), repeat, N, true);
+
+
+  BEST_TIME(validate_dfa_utf8_double(data, actualN), expected,
+            actualN = populate_utf8(data, N), repeat, N, true);
+  BEST_TIME(shiftless_validate_dfa_utf8_double(data, actualN), expected,
             actualN = populate_utf8(data, N), repeat, N, true);
 #ifdef __AVX2__
   BEST_TIME(validate_utf8_fast_avx(data, actualN), expected,

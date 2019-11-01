@@ -17,7 +17,7 @@ const char *unitname = "cycles";
                    :                                                           \
                    :                              /* no read only */           \
                    "%rax", "%rbx", "%rcx", "%rdx" /* clobbers */               \
-                   );                                                          \
+    );                                                                         \
     (cycles) = ((uint64_t)cyc_high << 32) | cyc_low;                           \
   } while (0)
 
@@ -31,7 +31,7 @@ const char *unitname = "cycles";
                    : "=r"(cyc_high), "=r"(cyc_low)                             \
                    : /* no read only registers */                              \
                    : "%rax", "%rbx", "%rcx", "%rdx" /* clobbers */             \
-                   );                                                          \
+    );                                                                         \
     (cycles) = ((uint64_t)cyc_high << 32) | cyc_low;                           \
   } while (0)
 
