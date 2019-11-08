@@ -83,9 +83,9 @@ static inline void avx512_checkContinuations(__m512i initial_lengths,
   // (carries > length) == (lengths > 0)
   *has_error = _kor_mask64(
       *has_error,
-      _knot_mask64(_kxor_mask64(
+      _kxnor_mask64(
           _mm512_cmpgt_epi8_mask(carries, initial_lengths),
-          _mm512_cmpgt_epi8_mask(initial_lengths, _mm512_setzero_si512()))));
+          _mm512_cmpgt_epi8_mask(initial_lengths, _mm512_setzero_si512())));
 }
 
 // when 0xED is found, next byte must be no larger than 0x9F
