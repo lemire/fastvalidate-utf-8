@@ -77,4 +77,9 @@ Thus, after rounding, it takes 0.7 cycles per input byte to validate UTF-8 strin
 
 [Fast UTF-8 validation with range algorithm (NEON+SSE4)](https://github.com/cyb70289/utf8/)
 
+## License
 
+This library is distributed under the terms of either the MIT license
+or the Apache License (Version 2.0), at your option.
+
+See [LICENSE-APACHE](LICENSE-APACHE), and [LICENSE-MIT](LICENSE-MIT) for details.
