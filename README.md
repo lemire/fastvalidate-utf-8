@@ -79,7 +79,9 @@ Thus, after rounding, it takes 0.7 cycles per input byte to validate UTF-8 strin
 
 ## License
 
-This library is distributed under the terms of either the MIT license
-or the Apache License (Version 2.0), at your option.
+This library is distributed under the terms of any of the following
+licenses, at your option:
 
-See [LICENSE-APACHE](LICENSE-APACHE), and [LICENSE-MIT](LICENSE-MIT) for details.
+* Apache License (Version 2.0) [LICENSE-APACHE](LICENSE-APACHE),
+* Boost Software License [LICENSE-BOOST](LICENSE-BOOST), or
+* MIT License [LICENSE-MIT](LICENSE-MIT).
