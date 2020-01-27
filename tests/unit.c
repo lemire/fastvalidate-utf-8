@@ -10,11 +10,17 @@
 #include "simdasciicheck.h"
 #include "simdutf8check_avx512.h"
 #include "simdasciicheck_avx512.h"
+#include "../benchmarks/hoehrmann.h"// not part of the library, but let us test in any case
 
 void test() {
   size_t N = 128;
   char buffer[N];
-  char *goodsequences[] = {"a", "\xc3\xb1", "\xe2\x82\xa1", "\xf0\x90\x8c\xbc", "안녕하세요, 세상"};
+  // additional tests are from autobahn websocket testsuite https://github.com/crossbario/autobahn-testsuite/tree/master/autobahntestsuite/autobahntestsuite/case
+  char *goodsequences[] = {"a", "\xc3\xb1", "\xe2\x82\xa1", "\xf0\x90\x8c\xbc", "안녕하세요, 세상",
+                            "\xc2\x80", // 6.7.2
+                            "\xf0\x90\x80\x80", // 6.7.4
+                            "\xee\x80\x80" // 6.11.2
+                            };
   char *badsequences[] = {"\xc3\x28",         // 0
                           "\xa0\xa1",         // 1
                           "\xe2\x28\xa1",     // 2
@@ -29,11 +35,43 @@ void test() {
                           "123456789012345\xed", //11
                           "123456789012345\xf1", //12
                           "123456789012345\xc2", //13
-                          "\xC2\x7F" // 14
+                          "\xC2\x7F", // 14
+                          "\xce", // 6.6.1
+                          "\xce\xba\xe1", // 6.6.3
+                          "\xce\xba\xe1\xbd", // 6.6.4
+                          "\xce\xba\xe1\xbd\xb9\xcf", // 6.6.6
+                          "\xce\xba\xe1\xbd\xb9\xcf\x83\xce", // 6.6.8
+                          "\xce\xba\xe1\xbd\xb9\xcf\x83\xce\xbc\xce", // 6.6.10
+                          "\xdf", // 6.14.6
+                          "\xef\xbf" // 6.14.7
                         };
-  for (size_t i = 0; i < 5; i++) {
+  for (size_t i = 0; i < 8; i++) {
     printf("good sequence %zu \n", i);
     size_t len = strlen(goodsequences[i]);
+    if(!validate_dfa_utf8(goodsequences[i], len+1)) {
+      printf("failing to validate good string %zu using DFA: validate_dfa_utf8 \n", i);
+      for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)goodsequences[i][j]);
+      printf("\n");
+      abort();
+    }
+    if(!validate_dfa_utf8_branchless(goodsequences[i], len+1)) {
+      printf("failing to validate good string %zu using DFA: validate_dfa_utf8 \n", i);
+      for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)goodsequences[i][j]);
+      printf("\n");
+      abort();
+    }
+    if(!shiftless_validate_dfa_utf8(goodsequences[i], len+1)) {
+      printf("failing to validate good string %zu using DFA: shiftless_validate_dfa_utf8 \n", i);
+      for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)goodsequences[i][j]);
+      printf("\n");
+      abort();
+    }
+    if(!shiftless_validate_dfa_utf8_branchless(goodsequences[i], len+1)) {
+      printf("failing to validate good string %zu using DFA:shiftless_validate_dfa_utf8_branchless \n", i);
+      for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)goodsequences[i][j]);
+      printf("\n");
+      abort();
+    }
     if(!validate_utf8_fast(goodsequences[i], len)) {
       printf("failing to validate good string %zu \n", i);
       for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)goodsequences[i][j]);
@@ -45,7 +83,6 @@ void test() {
       printf(".");
       fflush(NULL);
       memcpy(buffer + offset, goodsequences[i], len);
-      //printf("%*.*s\n",(int)N,(int)N,buffer);
       if(!validate_utf8_fast(buffer, N)) {
             printf("failing to validate good string %zu with offset %zu \n", i, N);
             for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)goodsequences[i][j]);
@@ -135,12 +172,30 @@ void test() {
     printf("\n");
 #endif
   }
-  for (size_t i = 0; i < 15; i++) {
+  for (size_t i = 0; i < 23; i++) {
     printf("bad sequence %zu \n", i);
 
     size_t len = strlen(badsequences[i]);
-    if(validate_utf8_fast(badsequences[i], len)) {
-      printf("failing to invalidate bad string %zu \n", i);
+    if(validate_dfa_utf8(badsequences[i], len+1)) {
+      printf("failing to invalidate bad string %zu using DFA \n", i);
+      for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)badsequences[i][j]);
+      printf("\n");
+      abort();
+    }
+    if(validate_dfa_utf8_branchless(badsequences[i], len+1)) {
+      printf("failing to invalidate bad string %zu using DFA \n", i);
+      for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)badsequences[i][j]);
+      printf("\n");
+      abort();
+    }
+    if(shiftless_validate_dfa_utf8(badsequences[i], len+1)) {
+      printf("failing to invalidate bad string %zu using DFA \n", i);
+      for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)badsequences[i][j]);
+      printf("\n");
+      abort();
+    }
+    if(shiftless_validate_dfa_utf8_branchless(badsequences[i], len+1)) {
+      printf("failing to invalidate bad string %zu using DFA \n", i);
       for(size_t j = 0; j < len; j++) printf("0x%02x ", (unsigned char)badsequences[i][j]);
       printf("\n");
       abort();

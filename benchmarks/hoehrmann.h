@@ -146,6 +146,7 @@ static inline bool shiftless_validate_dfa_utf8(const char *c, size_t len) {
 }
 
 // credit: Travis Downs
+// This is an experiment, the validation is not guarantee to work
 static inline bool validate_dfa_utf8_double(const char *c, size_t len) {
   size_t half = len / 2;
   const unsigned char *cu = (const unsigned char *)c;
@@ -166,6 +167,7 @@ static inline bool validate_dfa_utf8_double(const char *c, size_t len) {
 }
 
 // credit: Travis Downs
+// This is an experiment, the validation is not guarantee to work
 static inline bool shiftless_validate_dfa_utf8_double(const char *c,
                                                       size_t len) {
   size_t half = len / 2;

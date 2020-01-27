@@ -312,4 +312,5 @@ void demo_utf8(size_t N) {
 int main() {
   demo(65536);
   demo_utf8(65536);
+  printf("Warning: the 'double' schemes are not guarantee to validate, they are an experiment in performance.\n");
 }
