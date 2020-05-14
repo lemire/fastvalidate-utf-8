@@ -312,4 +312,5 @@ void demo_utf8(size_t N) {
 int main() {
   demo(65536);
   demo_utf8(65536);
+  demo_utf8(65536 * 32);
 }

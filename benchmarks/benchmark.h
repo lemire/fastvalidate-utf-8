@@ -3,6 +3,14 @@
 #include "linux-perf-events.h"
 #include <stdint.h>
 #include <time.h>
+struct timespec start; 
+struct timespec end;
+
+double timespent() {
+  return (end.tv_sec - start.tv_sec) +
+                        (end.tv_nsec - start.tv_nsec) ;
+}
+
 #ifdef __x86_64__
 const char *unitname = "cycles";
 
@@ -87,24 +95,26 @@ uint64_t global_rdtsc_overhead = (uint64_t)UINT64_MAX;
     fflush(NULL);                                                              \
     uint64_t cycles_start, cycles_final, cycles_diff;                          \
     uint64_t min_diff = (uint64_t)-1;                                          \
-    uint64_t sum_diff = 0;                                                     \
+    uint64_t sum_diff = 0;double t=1e200;                                                     \
     for (int i = 0; i < repeat; i++) {                                         \
       pre;                                                                     \
       __asm volatile("" ::: /* pretend to clobber */ "memory");                \
-      RDTSC_START(cycles_start);                                               \
+      clock_gettime(CLOCK_REALTIME, &start);RDTSC_START(cycles_start);                                               \
       if (test != expected) {                                                  \
         printf("not expected (%d , %d )", (int)test, (int)expected);           \
         break;                                                                 \
       }                                                                        \
-      RDTSC_STOP(cycles_final);                                                \
+      clock_gettime(CLOCK_REALTIME, &end);RDTSC_STOP(cycles_final);                                                \
       cycles_diff = (cycles_final - cycles_start - global_rdtsc_overhead);     \
       if (cycles_diff < min_diff)                                              \
         min_diff = cycles_diff;                                                \
       sum_diff += cycles_diff;                                                 \
+      double ts = timespent();if(ts < t) t = ts;\
     }                                                                          \
     uint64_t S = size;                                                         \
     float cycle_per_op = (min_diff) / (double)S;                               \
     float avg_cycle_per_op = (sum_diff) / ((double)S * repeat);                \
+    printf(" %.3f GB/s, ", size/t);\
     if (verbose)                                                               \
       printf(" %.3f %s per operation (best) ", cycle_per_op, unitname);        \
     if (verbose)                                                               \
