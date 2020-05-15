@@ -31,12 +31,15 @@
  *
  */
 
+// populate a string with null chars
 void populate(char *data, size_t N) {
   for (size_t i = 0; i < N; i++)
     data[i] = rand() & 0x7f;
+  // adding null termination
+  data[N] = '\0';
 }
 
-#define GCC_COMPILER (defined(__GNUC__) && !defined(__clang__))
+#define GCC_COMPILER (defined(__GNUC__) && !defined(__clang__) && !defined(__llvm__) && !defined(__INTEL_COMPILER))
 
 #ifdef GCC_COMPILER
 __attribute__((optimize("no-tree-vectorize"))) // works only with GCC
@@ -137,6 +140,7 @@ size_t populate_utf8(char *data, size_t N) {
       data[i++] = 0x80 + rand() % (0xBF - 0x80 + 1);
     }
   }
+  data[i] = '\0';
   return i;
 }
 
@@ -210,17 +214,17 @@ void demo(size_t N) {
             true);
   BEST_TIME(validate_utf8_fast(data, N), expected, populate(data, N), repeat, N,
             true);
-  BEST_TIME(shiftless_validate_dfa_utf8_branchless(data, N), expected,
+  BEST_TIME(shiftless_validate_dfa_utf8_branchless(data, N + 1), expected,
             populate(data, N), repeat, N, true);
-  BEST_TIME(shiftless_validate_dfa_utf8_branchless(data, N), expected,
+  BEST_TIME(shiftless_validate_dfa_utf8_branchless(data, N + 1), expected,
             populate(data, N), repeat, N, true);
-  BEST_TIME(shiftless_validate_dfa_utf8(data, N), expected, populate(data, N),
+  BEST_TIME(shiftless_validate_dfa_utf8(data, N + 1), expected, populate(data, N),
             repeat, N, true);
-  BEST_TIME(shiftless_validate_dfa_utf8(data, N), expected, populate(data, N),
+  BEST_TIME(shiftless_validate_dfa_utf8(data, N + 1), expected, populate(data, N),
             repeat, N, true);
-  BEST_TIME(validate_dfa_utf8_double(data, N), expected, populate(data, N),
+  BEST_TIME(validate_dfa_utf8_double(data, N + 1), expected, populate(data, N),
             repeat, N, true);
-  BEST_TIME(shiftless_validate_dfa_utf8_double(data, N), expected, populate(data, N),
+  BEST_TIME(shiftless_validate_dfa_utf8_double(data, N + 1), expected, populate(data, N),
             repeat, N, true);
 #ifdef __AVX2__
   BEST_TIME(validate_utf8_fast_avx(data, N), expected, populate(data, N),
@@ -279,19 +283,19 @@ void demo_utf8(size_t N) {
   BEST_TIME(validate_utf8(data, actualN), expected,
             actualN = populate_utf8(data, N), repeat, N, true);
 
-  BEST_TIME(shiftless_validate_dfa_utf8_branchless(data, actualN), expected,
+  BEST_TIME(shiftless_validate_dfa_utf8_branchless(data, actualN + 1), expected,
             actualN = populate_utf8(data, N), repeat, N, true);
-  BEST_TIME(shiftless_validate_dfa_utf8_branchless(data, actualN), expected,
+  BEST_TIME(shiftless_validate_dfa_utf8_branchless(data, actualN + 1), expected,
             actualN = populate_utf8(data, N), repeat, N, true);
-  BEST_TIME(shiftless_validate_dfa_utf8(data, actualN), expected,
+  BEST_TIME(shiftless_validate_dfa_utf8(data, actualN + 1), expected,
             actualN = populate_utf8(data, N), repeat, N, true);
-  BEST_TIME(shiftless_validate_dfa_utf8(data, actualN), expected,
+  BEST_TIME(shiftless_validate_dfa_utf8(data, actualN + 1), expected,
             actualN = populate_utf8(data, N), repeat, N, true);
 
 
-  BEST_TIME(validate_dfa_utf8_double(data, actualN), expected,
+  BEST_TIME(validate_dfa_utf8_double(data, actualN + 1), expected,
             actualN = populate_utf8(data, N), repeat, N, true);
-  BEST_TIME(shiftless_validate_dfa_utf8_double(data, actualN), expected,
+  BEST_TIME(shiftless_validate_dfa_utf8_double(data, actualN + 1), expected,
             actualN = populate_utf8(data, N), repeat, N, true);
 #ifdef __AVX2__
   BEST_TIME(validate_utf8_fast_avx(data, actualN), expected,
@@ -312,5 +316,5 @@ void demo_utf8(size_t N) {
 int main() {
   demo(65536);
   demo_utf8(65536);
-  demo_utf8(65536 * 32);
+  printf("Warning: the 'double' schemes are not guarantee to validate, they are an experiment in performance.\n");
 }
