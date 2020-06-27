@@ -31,6 +31,22 @@ It should be able to validate strings using less than 1 cycle per input byte.
 
 If you expect your strings to be plain ASCII, you can spend less than 0.1 cycles per input byte to check whether that is the case using the ``validate_ascii_fast`` function found in the ``simdasciicheck.h`` header. There are even faster functions like ``validate_utf8_fast_avx``.
 
+
+
+### Want a production-ready function?
+
+The fastvalidate-utf-8 repository is for demonstration purposes.
+
+If you want access to a fast validation function for production use, you can rely on the simdjson library. [It is as simple as the following](https://github.com/simdjson/simdjson/blob/master/doc/basics.md#utf-8-validation-alone):
+
+```C++
+  const char * some_string = "[ 1, 2, 3, 4] ";
+  size_t length = strlen(some_string);
+  bool is_ok = simdjson::validate_utf8(some_string, length);
+```
+
+See https://github.com/simdjson/
+
 ### Command-line tool 
 
 Adam Retter maintains a useful [command-line tool](https://github.com/adamretter/utf8-validator-c) related to this library.
