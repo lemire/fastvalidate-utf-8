@@ -47,6 +47,8 @@ If you want access to a fast validation function for production use, you can rel
 
 See https://github.com/simdjson/
 
+The simdjson library supports a wide-range of platforms and offers runtime dispatching as well as the most up-to-date algorithms. It is not necessary that your data is made of JSON though this was the original motivation.
+
 ### Command-line tool 
 
 Adam Retter maintains a useful [command-line tool](https://github.com/adamretter/utf8-validator-c) related to this library.
