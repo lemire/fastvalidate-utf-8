@@ -2,35 +2,9 @@
 [![Build Status](https://travis-ci.org/lemire/fastvalidate-utf-8.png)](https://travis-ci.org/lemire/fastvalidate-utf-8)
 [![Code Quality: Cpp](https://img.shields.io/lgtm/grade/cpp/g/lemire/fastvalidate-utf-8.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/lemire/fastvalidate-utf-8/context:cpp)
 
+
 Most strings online are in unicode using the UTF-8 encoding. Validating strings
 quickly before accepting them is important.
-
-This is a header-only C library to validate UTF-8 strings at high speeds using SIMD instructions.
-Specifically, this expects an x64 processor (capable of SSE instruction). It will not
-work currently on ARM processors.
-
-A modified version of this code improved the performance of [Scylla](https://github.com/scylladb/scylla/commit/6fadba56cc18bebe6648e6aec09be1b0b93f4817).
-
-Quick usage:
-```
-make
-./unit
-./benchmark
-```
-
-Code usage:
-
-```
-  #include "simdutf8check.h"
-
-  char * mystring = ...
-  bool is_it_valid = validate_utf8_fast(mystring, thestringlength);
-```
-
-It should be able to validate strings using less than 1 cycle per input byte.
-
-If you expect your strings to be plain ASCII, you can spend less than 0.1 cycles per input byte to check whether that is the case using the ``validate_ascii_fast`` function found in the ``simdasciicheck.h`` header. There are even faster functions like ``validate_utf8_fast_avx``.
-
 
 
 ### Want a production-ready function?
@@ -48,6 +22,44 @@ If you want access to a fast validation function for production use, you can rel
 See https://github.com/simdjson/
 
 The simdjson library supports a wide-range of platforms and offers runtime dispatching as well as the most up-to-date algorithms. It is not necessary that your data is made of JSON though this was the original motivation.
+
+
+## Reference
+
+- John Keiser, Daniel Lemire, [Validating UTF-8 In Less Than One Instruction Per Byte](https://arxiv.org/abs/2010.03090), Software: Practice & Experience (to appear)
+
+
+## How to use fastvalidate-utf-8?
+
+This is a header-only C library to validate UTF-8 strings at high speeds using SIMD instructions.
+Specifically, this expects an x64 processor (capable of SSE instruction). It will not
+work currently on ARM processors. It is not meant to be used in production as-is. Please see
+the simdjson library and its corresponding `simdjson::validate_utf8` function.
+
+
+Quick usage:
+```
+make
+./unit
+./benchmark
+```
+
+Code usage:
+
+```C++
+  #include "simdutf8check.h"
+
+  char * mystring = ...
+  bool is_it_valid = validate_utf8_fast(mystring, thestringlength);
+```
+
+It should be able to validate strings using less than 1 cycle per input byte.
+
+If you expect your strings to be plain ASCII, you can spend less than 0.1 cycles per input byte to check whether that is the case using the ``validate_ascii_fast`` function found in the ``simdasciicheck.h`` header. There are even faster functions like ``validate_utf8_fast_avx``.
+
+A modified version of this code improved the performance of [Scylla](https://github.com/scylladb/scylla/commit/6fadba56cc18bebe6648e6aec09be1b0b93f4817).
+
+
 
 ### Command-line tool 
 
