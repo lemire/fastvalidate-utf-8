@@ -26,7 +26,7 @@ The simdjson library supports a wide-range of platforms and offers runtime dispa
 
 ## Reference
 
-- John Keiser, Daniel Lemire, [Validating UTF-8 In Less Than One Instruction Per Byte](https://arxiv.org/abs/2010.03090), Software: Practice & Experience (to appear)
+- John Keiser, Daniel Lemire, [Validating UTF-8 In Less Than One Instruction Per Byte](https://arxiv.org/abs/2010.03090), Software: Practice & Experience 51 (5), 2021
 
 
 ## How to use fastvalidate-utf-8?
