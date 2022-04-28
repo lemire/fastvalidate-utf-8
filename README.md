@@ -11,18 +11,28 @@ quickly before accepting them is important.
 
 The fastvalidate-utf-8 repository is for demonstration purposes.
 
-If you want access to a fast validation function for production use, you can rely on the simdjson library. [It is as simple as the following](https://github.com/simdjson/simdjson/blob/master/doc/basics.md#utf-8-validation-alone):
+If you want access to a fast validation function for production use, you can rely on the simdutf library. It is as simple as the following:
 
 ```C++
-  const char * some_string = "[ 1, 2, 3, 4] ";
-  size_t length = strlen(some_string);
-  bool is_ok = simdjson::validate_utf8(some_string, length);
+#include "simdutf.cpp"
+#include "simdutf.h"
+
+int main(int argc, char *argv[]) {
+  const char *source = "1234";
+  // 4 == strlen(source)
+  bool validutf8 = simdutf::validate_utf8(source, 4);
+  if (validutf8) {
+    std::cout << "valid UTF-8" << std::endl;
+  } else {
+    std::cerr << "invalid UTF-8" << std::endl;
+    return EXIT_FAILURE;
+  }
+}
 ```
 
-See https://github.com/simdjson/
+See https://github.com/simdutf/
 
-The simdjson library supports a wide-range of platforms and offers runtime dispatching as well as the most up-to-date algorithms. It is not necessary that your data is made of JSON though this was the original motivation.
-
+The simdutf library supports a wide-range of platforms and offers runtime dispatching as well as the most up-to-date algorithms.
 
 ## Reference
 
