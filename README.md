@@ -1,7 +1,4 @@
 # fastvalidate-utf-8
-[![Build Status](https://travis-ci.org/lemire/fastvalidate-utf-8.png)](https://travis-ci.org/lemire/fastvalidate-utf-8)
-[![Code Quality: Cpp](https://img.shields.io/lgtm/grade/cpp/g/lemire/fastvalidate-utf-8.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/lemire/fastvalidate-utf-8/context:cpp)
-
 
 Most strings online are in unicode using the UTF-8 encoding. Validating strings
 quickly before accepting them is important.
