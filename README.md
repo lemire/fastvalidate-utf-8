@@ -3,6 +3,7 @@
 Most strings online are in unicode using the UTF-8 encoding. Validating strings
 quickly before accepting them is important.
 
+NOTE: The fastvalidate-utf-8 library is obsolete as of 2022: [please adopt the simdutf library](https://github.com/simdutf/). It is much more powerful, faster and better tested.
 
 ### Want a production-ready function?
 
