@@ -7,7 +7,7 @@ struct timespec start;
 struct timespec end;
 
 double timespent() {
-  return (end.tv_sec - start.tv_sec) +
+  return (end.tv_sec - start.tv_sec) * 1E6 +
                         (end.tv_nsec - start.tv_nsec) ;
 }
 
