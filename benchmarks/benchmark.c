@@ -31,12 +31,9 @@
  *
  */
 
-// populate a string with null chars
 void populate(char *data, size_t N) {
   for (size_t i = 0; i < N; i++)
     data[i] = rand() & 0x7f;
-  // adding null termination
-  data[N] = '\0';
 }
 
 #define GCC_COMPILER (defined(__GNUC__) && !defined(__clang__) && !defined(__llvm__) && !defined(__INTEL_COMPILER))
